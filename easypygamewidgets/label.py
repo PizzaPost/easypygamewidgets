@@ -565,7 +565,7 @@ def react(label, event=None):
         return
     current_time = time.time()
     mouse_pos = pygame.mouse.get_pos()
-    is_inside = is_point_in_rounded_rect(label, mouse_pos)
+    if not is_point_in_rounded_rect(label, mouse_pos): return
     screen_off_x, screen_off_y = get_screen_offset(label)
     if event:
         if event.type == pygame.MOUSEMOTION:
@@ -577,7 +577,7 @@ def react(label, event=None):
                     new_y = mouse_pos[1] - label.drag_offset[1] - screen_off_y
                     label.place(new_x, new_y)
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and is_inside:
+            if event.button == 1:
                 label.pressed = True
                 label.drag_offset = (mouse_pos[0] - (label.x + screen_off_x), mouse_pos[1] - (label.y + screen_off_y))
                 if label.click_sound: label.click_sound.play()
