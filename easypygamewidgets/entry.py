@@ -274,20 +274,12 @@ def process_key_action(entry, key, unicode_char):
             entry.selection_anchor = entry.cursor_position
         if key == pygame.K_LEFT:
             entry.cursor_position = max(0, entry.cursor_position - 1)
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         elif key == pygame.K_RIGHT:
             entry.cursor_position = min(len(entry.text), entry.cursor_position + 1)
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         elif key == pygame.K_HOME:
             entry.cursor_position = 0
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         elif key == pygame.K_END:
             entry.cursor_position = len(entry.text)
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         if shift:
             entry.text_select(entry.selection_anchor, entry.cursor_position)
         else:
@@ -297,8 +289,6 @@ def process_key_action(entry, key, unicode_char):
     if ctrl:
         if key == pygame.K_c:
             entry.text_copy()
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         elif key == pygame.K_v:
             entry.text_paste()
             entry.execute_typing_command()
@@ -311,8 +301,6 @@ def process_key_action(entry, key, unicode_char):
             entry.selection_anchor = 0
             entry.cursor_position = len(entry.text)
             entry.text_select(0, len(entry.text))
-            entry.execute_typing_command()
-            entry.play_typing_sound()
         return
     if key == pygame.K_BACKSPACE:
         if entry.selected_text:
@@ -322,6 +310,7 @@ def process_key_action(entry, key, unicode_char):
             entry.text_delete(entry.cursor_position - 1, entry.cursor_position)
         entry.execute_typing_command()
         entry.play_typing_sound()
+        return
     elif key == pygame.K_DELETE:
         if entry.selected_text:
             entry.text_delete(*entry.selected_text)
@@ -330,6 +319,7 @@ def process_key_action(entry, key, unicode_char):
             entry.text_delete(entry.cursor_position, entry.cursor_position + 1)
         entry.execute_typing_command()
         entry.play_typing_sound()
+        return
     elif unicode_char.isprintable() and unicode_char != "":
         if entry.selected_text:
             entry.text_delete(*entry.selected_text)
@@ -510,13 +500,14 @@ def react(entry, event=None):
             char_w = entry.font.size(char)[0]
             if mouse_x < curr_x + char_w / 2: return i
             curr_x += char_w
-        return len(display_text)
+        return min(len(display_text), len(entry.text))
 
     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
         if is_point_in_rounded_rect(entry, event.pos):
             entry.pressed = True
             idx = get_idx_at_mouse(event.pos[0])
-            entry.cursor_position = idx
+            # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
+            entry.cursor_position = min(len(entry.text), idx)
             entry.selection_anchor = idx
             entry.selected_text = None
             if not entry.focused:

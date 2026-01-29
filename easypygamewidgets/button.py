@@ -301,11 +301,13 @@ def react(button, event=None):
                     button.hold_sound.play()
                     button.hold_sound_length = button.hold_sound.get_length()
                     button.hold_sound_started = time.time()
-        else:
+        elif not pygame.mouse.get_pressed()[0] and is_inside:
             if button.pressed:
                 button.pressed = False
                 if button.release_command: button.release_command()
                 if button.release_sound: button.release_sound.play()
+        elif not pygame.mouse.get_pressed()[0] and not is_inside:
+            button.pressed = False
     else:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
