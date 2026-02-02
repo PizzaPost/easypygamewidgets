@@ -7,7 +7,7 @@ all_screens = []
 
 class Screen:
     def __init__(self, id: str,
-                 widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidgets.Slider | easypygamewidgets.Label] | None" = None,
+                 widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidgets.Slider | easypygamewidgets.Label] | easypygamewidgets.Surface | None" = None,
                  darken_background_with_alpha: int = 150, x: int = 0, y: int = 0):
         if not id in all_screens:
             self.id = id

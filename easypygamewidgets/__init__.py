@@ -4,6 +4,7 @@ from .label import Label
 from .misc import check_update, link_pygame_window
 from .screen import Screen
 from .slider import Slider
+from .surface import Surface
 
 
 def flip():
@@ -19,6 +20,8 @@ def flip():
         entry.draw(e, misc.pg)
     for l in label.all_labels:
         label.draw(l, misc.pg)
+    for s in surface.all_surfaces:
+        surface.draw(s, misc.pg)
 
 
 def handle_event(event):
@@ -34,6 +37,9 @@ def handle_event(event):
     if len(label.all_labels) > 0:
         for l in label.all_labels:
             label.react(l, event)
+    if len(surface.all_surfaces) > 0:
+        for s in surface.all_surfaces:
+            surface.react(s, event)
 
 
 def handle_special_events():
@@ -46,3 +52,6 @@ def handle_special_events():
     if len(label.all_labels) > 0:
         for l in label.all_labels:
             label.react(l)
+    if len(surface.all_surfaces) > 0:
+        for s in surface.all_surfaces:
+            surface.react(s)

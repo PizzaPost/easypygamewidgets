@@ -107,6 +107,13 @@ A text display that can be used to drag it into places.
 
 [example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/label.py)
 
+### Surface (images etc.)
+
+This converts your pygame surfaces into an easypygamewidgets widget that can be used in screens.
+(All pygame surface commands can be applied to the "surface" attribute of your widget.)
+
+[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/surface.py)
+
 ## Module Functions
 
 ### Core Functions
