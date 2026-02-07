@@ -84,6 +84,7 @@ class Label:
                  release_command=None, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25):
+        tmp = font.render(text, True, (255, 255, 255))
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -92,8 +93,8 @@ class Label:
         self.strikethrough = False
         self.underline = False
         self.auto_size = auto_size
-        self.width = width
-        self.height = height
+        self.width = tmp.get_width()
+        self.height = tmp.get_height()
         self.text = text
         self.state = state
         self.active_hover_text_color = active_hover_text_color
