@@ -271,8 +271,11 @@ class Label:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
-            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs or 'text' in kwargs:
+            tmp = self.font.render(self.text, True, (255, 255, 255))
+            self.rect = pygame.Rect(self.x, self.y, tmp.get_width(), tmp.get_height())
+            self.width = self.rect.width
+            self.height = self.rect.height
 
     def config(self, **kwargs):
         self.configure(**kwargs)
