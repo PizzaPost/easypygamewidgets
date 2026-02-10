@@ -81,6 +81,8 @@ class Surface:
             setattr(self, key, value)
         if 'x' in kwargs or 'y' in kwargs or 'surface' in kwargs:
             self.rect = self.surface.get_rect()
+        if 'screen' in kwargs:
+            self.set_screen(kwargs["screen"])
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -126,10 +128,12 @@ class Surface:
             self.release_sound.play()
         return self
 
-    def add_screen(self, screen):
+    def set_screen(self, screen):
+        if self.screen:
+            if self in screen.widgets:
+                self.screen.widgets.remove(self)
         self.screen = screen
-        if not self in screen.widgets:
-            screen.widgets.append(self)
+        screen.add_widget(self)
 
 
 def get_screen_offset(widget):

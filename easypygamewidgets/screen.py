@@ -8,7 +8,7 @@ all_screens = []
 class Screen:
     def __init__(self, id: str,
                  widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidgets.Slider | easypygamewidgets.Label] | easypygamewidgets.Surface | None" = None,
-                 darken_background_with_alpha: int = 150, x: int = 0, y: int = 0):
+                 darken_background_with_alpha: int = 0, x: int = 0, y: int = 0):
         if not id in all_screens:
             self.id = id
             self.widgets = widgets if widgets is not None else []
@@ -23,9 +23,10 @@ class Screen:
             print(f"{id} is already defined")
 
     def add_widget(self, widget):
-        if not widget in self.widgets:
-            self.widgets.append(widget)
-            widget.add_screen(self)
+        if widget in self.widgets:
+            widget.screen.remove_widget(widget)
+        self.widgets.append(widget)
+        widget.screen = self
 
     def remove_widget(self, widget):
         if widget in self.widgets:

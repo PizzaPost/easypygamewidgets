@@ -276,6 +276,8 @@ class Label:
             self.rect = pygame.Rect(self.x, self.y, tmp.get_width(), tmp.get_height())
             self.width = self.rect.width
             self.height = self.rect.height
+        if 'screen' in kwargs:
+            self.set_screen(kwargs["screen"])
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -331,10 +333,12 @@ class Label:
             self.release_sound.play()
         return self
 
-    def add_screen(self, screen):
+    def set_screen(self, screen):
+        if self.screen:
+            if self in screen.widgets:
+                self.screen.widgets.remove(self)
         self.screen = screen
-        if not self in screen.widgets:
-            screen.widgets.append(self)
+        screen.add_widget(self)
 
     def set_strikethrough(self, value: bool):
         self.strikethrough = value
