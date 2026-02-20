@@ -145,6 +145,7 @@ examples:
    panel with sliders
 4. **[login form](https://github.com/PizzaPost/pywidgets/blob/master/examples/login_form.py)** - form with entries and
    validation
+5. **[bindings](https://github.com/PizzaPost/pywidgets/blob/master/examples/slider.py)** - binding events to widgets
 
 ## Requirements
 

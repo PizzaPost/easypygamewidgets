@@ -1,5 +1,3 @@
-import time
-
 import pygame
 
 pygame.init()
@@ -10,14 +8,9 @@ all_surfaces = []
 class Surface:
     def __init__(self, surface: pygame.Surface, screen: "easypygamewidgets.Screen | None" = None,
                  state: str = "enabled",
-                 click_sound: str | pygame.mixer.Sound = None,
-                 hold_sound: str | pygame.mixer.Sound = None,
-                 release_sound: str | pygame.mixer.Sound = None,
-                 active_hover_cursor: pygame.cursors = None,
-                 disabled_hover_cursor: pygame.cursors = None,
-                 active_pressed_cursor: pygame.cursors = None,
-                 click_command=None, hold_command=None, release_command=None,
-                 holdable: bool = False):
+                 active_hover_cursor: pygame.Cursor = None,
+                 disabled_hover_cursor: pygame.Cursor = None,
+                 active_pressed_cursor: pygame.Cursor = None):
         self.surface = surface
         if screen:
             screen.add_widget(self)
@@ -25,27 +18,6 @@ class Surface:
         else:
             self.screen = None
         self.state = state
-        if click_sound:
-            if isinstance(click_sound, pygame.mixer.Sound):
-                self.click_sound = click_sound
-            else:
-                self.click_sound = pygame.mixer.Sound(click_sound)
-        else:
-            self.click_sound = None
-        if hold_sound:
-            if isinstance(hold_sound, pygame.mixer.Sound):
-                self.hold_sound = hold_sound
-            else:
-                self.hold_sound = pygame.mixer.Sound(hold_sound)
-        else:
-            self.hold_sound = None
-        if release_sound:
-            if isinstance(release_sound, pygame.mixer.Sound):
-                self.release_sound = release_sound
-            else:
-                self.release_sound = pygame.mixer.Sound(release_sound)
-        else:
-            self.release_sound = None
         cursor_input = {
             "active_hover": active_hover_cursor,
             "disabled_hover": disabled_hover_cursor,
@@ -58,12 +30,8 @@ class Surface:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the surface {self.text} because it's not a pygame.cursors.Cursor object. ({cursor})")
+                        f"No custom cursor is used for the surface {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
-        self.click_command = click_command
-        self.hold_command = hold_command
-        self.release_command = release_command
-        self.holdable = holdable
         self.x = 0
         self.y = 0
         self.alive = True
@@ -71,8 +39,7 @@ class Surface:
         self.rect = surface.get_rect()
         self.original_cursor = None
         self.visible = True
-        self.hold_sound_started = None
-        self.hold_sound_length = None
+        self.bindings = {}
 
         all_surfaces.append(self)
 
@@ -98,35 +65,16 @@ class Surface:
         self.rect = self.surface.get_rect()
         return self
 
-    def execute_click(self):
-        if self.click_command:
-            self.click_command()
+    def bind(self, event: str, command):
+        if event not in self.bindings:
+            self.bindings[event] = []
+        self.bindings[event].append(command)
         return self
 
-    def execute_hold(self):
-        if self.hold_command:
-            self.hold_command()
-        return self
-
-    def execute_release(self):
-        if self.release_command:
-            self.release_command()
-        return self
-
-    def play_click_sound(self):
-        if self.click_sound:
-            self.click_sound.play()
-        return self
-
-    def play_hold_sound(self):
-        if self.hold_sound:
-            self.hold_sound.play()
-        return self
-
-    def play_release_sound(self):
-        if self.release_sound:
-            self.release_sound.play()
-        return self
+    def trigger_event(self, event: str, *args, **kwargs):
+        if event in self.bindings:
+            for command in self.bindings[event]:
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -169,6 +117,16 @@ def draw(surface, window: pygame.Surface):
             pygame.mouse.set_cursor(surface.original_cursor)
             surface.original_cursor = None
 
+    if is_hovering and not getattr(surface, "is_hovered", False):
+        surface.is_hovered = True
+        surface.trigger_event("<MOUSE-IN>")
+    elif is_hovering and getattr(surface, "is_hovered", False):
+        surface.is_hovered = True
+        surface.trigger_event("<HOVER>")
+    elif not is_hovering and getattr(surface, "is_hovered", False):
+        surface.is_hovered = False
+        surface.trigger_event("<MOUSE-OUT>")
+
     offset_x, offset_y = get_screen_offset(surface)
     draw_rect = surface.rect.move(offset_x, offset_y)
     window.blit(surface.surface, draw_rect)
@@ -185,30 +143,25 @@ def react(surface, event=None):
     if not event:
         if pygame.mouse.get_pressed()[0] and is_inside:
             surface.pressed = True
-            if surface.holdable:
-                if surface.hold_command: surface.hold_command()
-                if surface.hold_sound:
-                    if surface.hold_sound_started:
-                        if surface.hold_sound_started + surface.hold_sound_length > time.time():
-                            return
-                    surface.hold_sound.play()
-                    surface.hold_sound_length = surface.hold_sound.get_length()
-                    surface.hold_sound_started = time.time()
+            surface.trigger_event("<HOLD>")
         elif not pygame.mouse.get_pressed()[0] and is_inside:
             if surface.pressed:
                 surface.pressed = False
-                if surface.release_command: surface.release_command()
-                if surface.release_sound: surface.release_sound.play()
+                surface.trigger_event("<RELEASE>")
         elif not pygame.mouse.get_pressed()[0] and not is_inside:
             surface.pressed = False
     else:
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.KEYDOWN and is_inside:
+            surface.trigger_event("<KEY>")
+            if event.unicode:
+                surface.trigger_event(event.unicode)
+            keyname = pygame.key.name(event.key)
+            surface.trigger_event(f"<{keyname.upper()}>")
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
                 surface.pressed = True
-                if surface.click_command: surface.click_command()
-                if surface.click_sound: surface.click_sound.play()
+                surface.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and is_inside and surface.pressed:
                 surface.pressed = False
-                if surface.release_command: surface.release_command()
-                if surface.release_sound: surface.release_sound.play()
+                surface.trigger_event("<RELEASE>")

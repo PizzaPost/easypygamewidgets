@@ -1,5 +1,4 @@
 import math
-import time
 
 import pygame
 
@@ -51,16 +50,11 @@ class Slider:
                  disabled_hover_display_color: tuple = (150, 150, 150),
                  disabled_unpressed_display_color: tuple = (150, 150, 150),
                  border_width: int = 2,
-                 click_sound: str | pygame.mixer.Sound = None,
-                 hold_sound: str | pygame.mixer.Sound = None,
-                 drag_sound: str | pygame.mixer.Sound = None,
-                 release_sound: str | pygame.mixer.Sound = None,
-                 active_hover_cursor: pygame.cursors = None,
-                 disabled_hover_cursor: pygame.cursors = None,
-                 active_pressed_cursor: pygame.cursors = None,
+                 active_hover_cursor: pygame.Cursor = None,
+                 disabled_hover_cursor: pygame.Cursor = None,
+                 active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
-                 alignment_spacing: int = 20, click_command=None, hold_command=None, drag_command=None,
-                 release_command=None, show_value_when_pressed: bool = True,
+                 alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
                  show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150):
@@ -123,34 +117,6 @@ class Slider:
         self.disabled_hover_display_color = disabled_hover_display_color
         self.disabled_unpressed_display_color = disabled_unpressed_display_color
         self.border_width = border_width
-        if click_sound:
-            if isinstance(click_sound, pygame.mixer.Sound):
-                self.click_sound = click_sound
-            else:
-                self.click_sound = pygame.mixer.Sound(click_sound)
-        else:
-            self.click_sound = None
-        if hold_sound:
-            if isinstance(hold_sound, pygame.mixer.Sound):
-                self.hold_sound = hold_sound
-            else:
-                self.hold_sound = pygame.mixer.Sound(hold_sound)
-        else:
-            self.hold_sound = None
-        if drag_sound:
-            if isinstance(drag_sound, pygame.mixer.Sound):
-                self.drag_sound = drag_sound
-            else:
-                self.drag_sound = pygame.mixer.Sound(drag_sound)
-        else:
-            self.drag_sound = None
-        if release_sound:
-            if isinstance(release_sound, pygame.mixer.Sound):
-                self.release_sound = release_sound
-            else:
-                self.release_sound = pygame.mixer.Sound(release_sound)
-        else:
-            self.release_sound = None
         cursor_input = {
             "active_hover": active_hover_cursor,
             "disabled_hover": disabled_hover_cursor,
@@ -163,15 +129,11 @@ class Slider:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the slider {self.text} because it's not a pygame.cursors.Cursor object. ({cursor})")
+                        f"No custom cursor is used for the slider {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.font = font
         self.alignment = alignment
         self.alignment_spacing = alignment_spacing
-        self.click_command = click_command
-        self.hold_command = hold_command
-        self.drag_command = drag_command
-        self.release_command = release_command
         self.show_value_when_pressed = show_value_when_pressed
         self.show_value_when_hovered = show_value_when_hovered
         self.show_value_when_unpressed = show_value_when_unpressed
@@ -189,10 +151,7 @@ class Slider:
         self.visible = True
         self.pressed_before = False
         self.last_value_update_time = 0
-        self.hold_sound_started = None
-        self.hold_sound_length = None
-        self.drag_sound_started = None
-        self.drag_sound_length = None
+        self.bindings = {}
 
         all_sliders.append(self)
 
@@ -218,45 +177,16 @@ class Slider:
         self.rect = pygame.Rect(self.x, self.y, self.width, 60)
         return self
 
-    def execute_click_command(self):
-        if self.click_command:
-            self.click_command()
+    def bind(self, event: str, command):
+        if event not in self.bindings:
+            self.bindings[event] = []
+        self.bindings[event].append(command)
         return self
 
-    def execute_hold_command(self):
-        if self.hold_command:
-            self.hold_command()
-        return self
-
-    def execute_drag_command(self):
-        if self.drag_command:
-            self.drag_command()
-        return self
-
-    def execute_release_command(self):
-        if self.release_command:
-            self.release_command()
-        return self
-
-    def play_click_sound(self):
-        if self.click_sound:
-            self.click_sound.play()
-        return self
-
-    def play_hold_sound(self):
-        if self.hold_sound:
-            self.hold_sound.play()
-        return self
-
-    def play_drag_sound(self):
-        if self.drag_sound:
-            self.drag_sound.play()
-        return self
-
-    def play_release_sound(self):
-        if self.release_sound:
-            self.release_sound.play()
-        return self
+    def trigger_event(self, event: str, *args, **kwargs):
+        if event in self.bindings:
+            for command in self.bindings[event]:
+                command(*args, **kwargs)
 
     def get(self):
         return self.value
@@ -340,6 +270,16 @@ def draw(slider, surface: pygame.Surface):
         if slider.original_cursor:
             pygame.mouse.set_cursor(slider.original_cursor)
             slider.original_cursor = None
+
+    if is_hovering and not getattr(slider, "is_hovered", False):
+        slider.is_hovered = True
+        slider.trigger_event("<MOUSE-IN>")
+    elif is_hovering and getattr(slider, "is_hovered", False):
+        slider.is_hovered = True
+        slider.trigger_event("<HOVER>")
+    elif not is_hovering and getattr(slider, "is_hovered", False):
+        slider.is_hovered = False
+        slider.trigger_event("<MOUSE-OUT>")
 
     if slider.auto_size:
         temp_surf = slider.font.render(slider.text, True, text_color)
@@ -479,30 +419,15 @@ def react(slider, event=None):
         slider.value = new_slider_value
         current_time = pygame.time.get_ticks()
         if not slider.pressed_before:
-            if slider.click_command: slider.click_command()
-            if slider.click_sound: slider.click_sound.play()
+            slider.trigger_event("<PRESS>")
             slider.pressed_before = True
         else:
             if moved:
                 slider.last_value_update_time = current_time
-                if slider.drag_command: slider.drag_command()
-                if slider.drag_sound:
-                    if slider.drag_sound_started:
-                        if slider.drag_sound_started + slider.drag_sound_length > time.time():
-                            return
-                    slider.drag_sound.play()
-                    slider.drag_sound_length = slider.drag_sound.get_length()
-                    slider.drag_sound_started = time.time()
+                slider.trigger_event("<DRAG>")
             else:
                 if current_time - slider.last_value_update_time > slider.trigger_hold_delay:
-                    if slider.hold_command: slider.hold_command()
-                    if slider.hold_sound:
-                        if slider.hold_sound_started:
-                            if slider.hold_sound_started + slider.hold_sound_length > time.time():
-                                return
-                        slider.hold_sound.play()
-                        slider.hold_sound_length = slider.hold_sound.get_length()
-                        slider.hold_sound_started = time.time()
+                    slider.trigger_event("<HOLD>")
 
     if not event:
         if pygame.mouse.get_pressed()[0] and is_inside:
@@ -513,20 +438,23 @@ def react(slider, event=None):
             else:
                 slider.pressed = False
                 slider.pressed_before = False
-                if slider.release_sound: slider.release_sound.play()
-                if slider.release_command: slider.release_command()
+                slider.trigger_event("<RELEASE>")
     else:
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.KEYDOWN and is_inside:
+            slider.trigger_event("<KEY>")
+            if event.unicode:
+                slider.trigger_event(event.unicode)
+            keyname = pygame.key.name(event.key)
+            slider.trigger_event(f"<{keyname.upper()}>")
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
                 slider.pressed = True
                 update_value()
-                if slider.click_sound: slider.click_sound.play()
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 slider.pressed = False
                 slider.pressed_before = False
-                if slider.release_sound: slider.release_sound.play()
-                if slider.release_command: slider.release_command()
+                slider.trigger_event("<RELEASE>")
         elif event.type == pygame.MOUSEMOTION:
             if slider.pressed:
                 update_value()

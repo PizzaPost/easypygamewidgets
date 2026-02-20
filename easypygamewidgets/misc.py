@@ -11,7 +11,7 @@ def check_update():
         response.raise_for_status()
         data = response.json()
         latest_version = data["version"]
-        if latest_version == "1.2.3":
+        if latest_version == "2.0.0":
             print("easypygamewidgets is on the latest version")
         else:
             print("An update is available. Download it now with 'pip install --upgrade easypygamewidgets'")

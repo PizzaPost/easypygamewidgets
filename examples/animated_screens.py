@@ -22,8 +22,8 @@ def trigger_hide():
     target_x = 1000
 
 
-button1 = epw.Button(text="Show GUI", auto_size=False, click_command=trigger_show).place(x=50, y=100)
-button2 = epw.Button(screen=screen, text="Hide GUI", auto_size=False, click_command=trigger_hide).place(x=0, y=100)
+button1 = epw.Button(text="Show GUI", auto_size=False, command=trigger_show).place(x=50, y=100)
+button2 = epw.Button(screen=screen, text="Hide GUI", auto_size=False, command=trigger_hide).place(x=0, y=100)
 
 running = True
 while running:

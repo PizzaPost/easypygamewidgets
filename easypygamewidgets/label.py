@@ -72,16 +72,11 @@ class Label:
                  disabled_unpressed_border_color: tuple = (),
                  disabled_unpressed_border_color_alpha: int = 255,
                  border_thickness: int = 2,
-                 click_sound: str | pygame.mixer.Sound = None,
-                 hold_sound: str | pygame.mixer.Sound = None,
-                 drag_sound: str | pygame.mixer.Sound = None,
-                 release_sound: str | pygame.mixer.Sound = None,
-                 active_hover_cursor: pygame.cursors = None,
-                 disabled_hover_cursor: pygame.cursors = None,
-                 active_pressed_cursor: pygame.cursors = None,
+                 active_hover_cursor: pygame.Cursor = None,
+                 disabled_hover_cursor: pygame.Cursor = None,
+                 active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
-                 alignment_spacing: int = 20, click_command=None, hold_command=None, drag_command=None,
-                 release_command=None, dragable: bool = False, top_left_corner_radius: int = 25,
+                 alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25):
         tmp = font.render(text, True, (255, 255, 255))
@@ -198,34 +193,6 @@ class Label:
         self.disabled_unpressed_border_color = disabled_unpressed_border_color
         self.disabled_unpressed_border_color_alpha = disabled_unpressed_border_color_alpha
         self.border_thickness = border_thickness
-        if click_sound:
-            if isinstance(click_sound, pygame.mixer.Sound):
-                self.click_sound = click_sound
-            else:
-                self.click_sound = pygame.mixer.Sound(click_sound)
-        else:
-            self.click_sound = None
-        if hold_sound:
-            if isinstance(hold_sound, pygame.mixer.Sound):
-                self.hold_sound = hold_sound
-            else:
-                self.hold_sound = pygame.mixer.Sound(hold_sound)
-        else:
-            self.hold_sound = None
-        if drag_sound:
-            if isinstance(drag_sound, pygame.mixer.Sound):
-                self.drag_sound = drag_sound
-            else:
-                self.drag_sound = pygame.mixer.Sound(drag_sound)
-        else:
-            self.drag_sound = None
-        if release_sound:
-            if isinstance(release_sound, pygame.mixer.Sound):
-                self.release_sound = release_sound
-            else:
-                self.release_sound = pygame.mixer.Sound(release_sound)
-        else:
-            self.release_sound = None
         cursor_input = {
             "active_hover": active_hover_cursor,
             "disabled_hover": disabled_hover_cursor,
@@ -238,15 +205,11 @@ class Label:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the label {self.text} because it's not a pygame.cursors.Cursor object. ({cursor})")
+                        f"No custom cursor is used for the label {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.font = font
         self.alignment = alignment
         self.alignment_spacing = alignment_spacing
-        self.click_command = click_command
-        self.hold_command = hold_command
-        self.drag_command = drag_command
-        self.release_command = release_command
         self.dragable = dragable
         self.top_left_corner_radius = top_left_corner_radius
         self.top_right_corner_radius = top_right_corner_radius
@@ -259,12 +222,10 @@ class Label:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
         self.visible = True
-        self.hold_sound_started = None
-        self.hold_sound_length = None
         self.drag_offset = None
         self.is_dragging = False
         self.last_checked_dragging = None
-        self.drag_sound_started = None
+        self.bindings = {}
 
         all_labels.append(self)
 
@@ -293,45 +254,16 @@ class Label:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def execute_click(self):
-        if self.click_command:
-            self.click_command()
+    def bind(self, event: str, command):
+        if event not in self.bindings:
+            self.bindings[event] = []
+        self.bindings[event].append(command)
         return self
 
-    def execute_hold(self):
-        if self.hold_command:
-            self.hold_command()
-        return self
-
-    def execute_drag(self):
-        if self.drag_command:
-            self.drag_command()
-        return self
-
-    def execute_release(self):
-        if self.release_command:
-            self.release_command()
-        return self
-
-    def play_click_sound(self):
-        if self.click_sound:
-            self.click_sound.play()
-        return self
-
-    def play_hold_sound(self):
-        if self.hold_sound:
-            self.hold_sound.play()
-        return self
-
-    def play_drag_sound(self):
-        if self.drag_sound:
-            self.drag_sound.play()
-        return self
-
-    def play_release_sound(self):
-        if self.release_sound:
-            self.release_sound.play()
-        return self
+    def trigger_event(self, event: str, *args, **kwargs):
+        if event in self.bindings:
+            for command in self.bindings[event]:
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -460,6 +392,16 @@ def draw(label, surface: pygame.Surface):
             pygame.mouse.set_cursor(label.original_cursor)
             label.original_cursor = None
 
+    if is_hovering and not getattr(label, "is_hovered", False):
+        label.is_hovered = True
+        label.trigger_event("<MOUSE-IN>")
+    elif is_hovering and getattr(label, "is_hovered", False):
+        label.is_hovered = True
+        label.trigger_event("<HOVER>")
+    elif not is_hovering and getattr(label, "is_hovered", False):
+        label.is_hovered = False
+        label.trigger_event("<MOUSE-OUT>")
+
     if label.auto_size:
         temp_surf = label.font.render(label.text, True, text_color)
         label.width = temp_surf.get_width() + 40 + (label.alignment_spacing - 20)
@@ -576,6 +518,12 @@ def react(label, event=None):
     if not is_point_in_rounded_rect(label, mouse_pos): return
     screen_off_x, screen_off_y = get_screen_offset(label)
     if event:
+        if event.type == pygame.KEYDOWN:
+            label.trigger_event("<KEY>")
+            if event.unicode:
+                label.trigger_event(event.unicode)
+            keyname = pygame.key.name(event.key)
+            label.trigger_event(f"<{keyname.upper()}>")
         if event.type == pygame.MOUSEMOTION:
             if label.pressed and label.dragable:
                 label.is_dragging = True
@@ -588,32 +536,16 @@ def react(label, event=None):
             if event.button == 1:
                 label.pressed = True
                 label.drag_offset = (mouse_pos[0] - (label.x + screen_off_x), mouse_pos[1] - (label.y + screen_off_y))
-                if label.click_sound: label.click_sound.play()
-                if label.click_command: label.click_command()
+                label.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 label.pressed = False
                 label.is_dragging = False
-                if label.release_sound: label.release_sound.play()
-                if label.release_command: label.release_command()
+                label.trigger_event("<RELEASE>")
     if label.last_checked_dragging:
         if current_time - label.last_checked_dragging > 0.2:
             label.is_dragging = False
     if label.pressed and not label.is_dragging:
-        if label.hold_command: label.hold_command()
-        if label.hold_sound:
-            if label.hold_sound_started:
-                if label.hold_sound_started + label.hold_sound_length > current_time:
-                    return
-            label.hold_sound.play()
-            label.hold_sound_length = label.hold_sound.get_length()
-            label.hold_sound_started = time.time()
+        label.trigger_event("<HOLD>")
     if label.pressed and label.is_dragging:
-        if label.drag_command: label.drag_command()
-        if label.drag_sound:
-            if label.drag_sound_started:
-                if label.drag_sound_started + label.drag_sound_length > current_time:
-                    return
-            label.drag_sound.play()
-            label.drag_sound_length = label.drag_sound.get_length()
-            label.drag_sound_started = time.time()
+        label.trigger_event("<DRAG>")

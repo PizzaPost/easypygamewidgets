@@ -1,5 +1,3 @@
-import time
-
 import pygame
 
 pygame.init()
@@ -28,15 +26,12 @@ class Button:
                  disabled_hover_border_color: tuple = (60, 60, 60),
                  active_pressed_border_color: tuple = (50, 50, 50),
                  border_thickness: int = 2,
-                 click_sound: str | pygame.mixer.Sound = None,
-                 hold_sound: str | pygame.mixer.Sound = None,
-                 release_sound: str | pygame.mixer.Sound = None,
-                 active_hover_cursor: pygame.cursors = None,
-                 disabled_hover_cursor: pygame.cursors = None,
-                 active_pressed_cursor: pygame.cursors = None,
+                 active_hover_cursor: pygame.Cursor = None,
+                 disabled_hover_cursor: pygame.Cursor = None,
+                 active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
-                 alignment_spacing: int = 20, click_command=None, hold_command=None, release_command=None,
-                 holdable: bool = False, corner_radius: int = 25):
+                 command=None, alignment_spacing: int = 20, corner_radius: int = 25):
+        self.bindings = {}
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -62,27 +57,6 @@ class Button:
         self.active_hover_border_color = active_hover_border_color
         self.disabled_hover_border_color = disabled_hover_border_color
         self.active_pressed_border_color = active_pressed_border_color
-        if click_sound:
-            if isinstance(click_sound, pygame.mixer.Sound):
-                self.click_sound = click_sound
-            else:
-                self.click_sound = pygame.mixer.Sound(click_sound)
-        else:
-            self.click_sound = None
-        if hold_sound:
-            if isinstance(hold_sound, pygame.mixer.Sound):
-                self.hold_sound = hold_sound
-            else:
-                self.hold_sound = pygame.mixer.Sound(hold_sound)
-        else:
-            self.hold_sound = None
-        if release_sound:
-            if isinstance(release_sound, pygame.mixer.Sound):
-                self.release_sound = release_sound
-            else:
-                self.release_sound = pygame.mixer.Sound(release_sound)
-        else:
-            self.release_sound = None
         self.border_thickness = border_thickness
         cursor_input = {
             "active_hover": active_hover_cursor,
@@ -96,15 +70,13 @@ class Button:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the button {self.text} because it's not a pygame.cursors.Cursor object. ({cursor})")
+                        f"No custom cursor is used for the button {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.font = font
         self.alignment = alignment
+        if command:
+            self.bind("<RELEASE>", command)
         self.alignment_spacing = alignment_spacing
-        self.click_command = click_command
-        self.hold_command = hold_command
-        self.release_command = release_command
-        self.holdable = holdable
         self.corner_radius = corner_radius
         self.x = 0
         self.y = 0
@@ -113,8 +85,6 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
         self.visible = True
-        self.hold_sound_started = None
-        self.hold_sound_length = None
 
         all_buttons.append(self)
 
@@ -140,35 +110,16 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def execute_click(self):
-        if self.click_command:
-            self.click_command()
+    def bind(self, event: str, command):
+        if event not in self.bindings:
+            self.bindings[event] = []
+        self.bindings[event].append(command)
         return self
 
-    def execute_hold(self):
-        if self.hold_command:
-            self.hold_command()
-        return self
-
-    def execute_release(self):
-        if self.release_command:
-            self.release_command()
-        return self
-
-    def play_click_sound(self):
-        if self.click_sound:
-            self.click_sound.play()
-        return self
-
-    def play_hold_sound(self):
-        if self.hold_sound:
-            self.hold_sound.play()
-        return self
-
-    def play_release_sound(self):
-        if self.release_sound:
-            self.release_sound.play()
-        return self
+    def trigger_event(self, event: str, *args, **kwargs):
+        if event in self.bindings:
+            for command in self.bindings[event]:
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -231,6 +182,16 @@ def draw(button, surface: pygame.Surface):
         if button.original_cursor:
             pygame.mouse.set_cursor(button.original_cursor)
             button.original_cursor = None
+
+    if is_hovering and not getattr(button, "is_hovered", False):
+        button.is_hovered = True
+        button.trigger_event("<MOUSE-IN>")
+    elif is_hovering and getattr(button, "is_hovered", False):
+        button.is_hovered = True
+        button.trigger_event("<HOVER>")
+    elif not is_hovering and getattr(button, "is_hovered", False):
+        button.is_hovered = False
+        button.trigger_event("<MOUSE-OUT>")
 
     if button.auto_size:
         temp_surf = button.font.render(button.text, True, text_color)
@@ -296,30 +257,25 @@ def react(button, event=None):
     if not event:
         if pygame.mouse.get_pressed()[0] and is_inside:
             button.pressed = True
-            if button.holdable:
-                if button.hold_command: button.hold_command()
-                if button.hold_sound:
-                    if button.hold_sound_started:
-                        if button.hold_sound_started + button.hold_sound_length > time.time():
-                            return
-                    button.hold_sound.play()
-                    button.hold_sound_length = button.hold_sound.get_length()
-                    button.hold_sound_started = time.time()
+            button.trigger_event("<HOLD>")
         elif not pygame.mouse.get_pressed()[0] and is_inside:
             if button.pressed:
                 button.pressed = False
-                if button.release_command: button.release_command()
-                if button.release_sound: button.release_sound.play()
+                button.trigger_event("<RELEASE>")
         elif not pygame.mouse.get_pressed()[0] and not is_inside:
             button.pressed = False
     else:
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.KEYDOWN and is_inside:
+            button.trigger_event("<KEY>")
+            if event.unicode:
+                button.trigger_event(event.unicode)
+            keyname = pygame.key.name(event.key)
+            button.trigger_event(f"<{keyname.upper()}>")
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
                 button.pressed = True
-                if button.click_command: button.click_command()
-                if button.click_sound: button.click_sound.play()
+                button.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and is_inside and button.pressed:
                 button.pressed = False
-                if button.release_command: button.release_command()
-                if button.release_sound: button.release_sound.play()
+                button.trigger_event("<RELEASE>")

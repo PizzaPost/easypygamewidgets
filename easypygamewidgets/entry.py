@@ -28,16 +28,13 @@ class Entry:
                  selection_color: tuple = (0, 120, 215),
                  disabled_selection_color: tuple = (32, 106, 163),
                  border_thickness: int = 2,
-                 focus_sound: str | pygame.mixer.Sound = None,
-                 typing_sound: str | pygame.mixer.Sound = None,
-                 unfocus_sound: str | pygame.mixer.Sound = None,
-                 active_hover_cursor: pygame.cursors = None,
-                 disabled_hover_cursor: pygame.cursors = None,
-                 active_pressed_cursor: pygame.cursors = None,
+                 active_hover_cursor: pygame.Cursor = None,
+                 disabled_hover_cursor: pygame.Cursor = None,
+                 active_pressed_cursor: pygame.Cursor = None,
                  blinking_cursor: str = "|",
                  font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "left",
-                 alignment_spacing: int = 20, focus_command=None, typing_command=None, unfocus_command=None,
-                 corner_radius: int = 25, repeat_delay: int = 500, repeat_interval: int = 50):
+                 alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
+                 repeat_interval: int = 50):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -68,27 +65,6 @@ class Entry:
         self.active_pressed_border_color = active_pressed_border_color
         self.selection_color = selection_color
         self.disabled_selection_color = disabled_selection_color
-        if focus_sound:
-            if isinstance(focus_sound, pygame.mixer.Sound):
-                self.focus_sound = focus_sound
-            else:
-                self.focus_sound = pygame.mixer.Sound(focus_sound)
-        else:
-            self.focus_sound = None
-        if typing_sound:
-            if isinstance(typing_sound, pygame.mixer.Sound):
-                self.typing_sound = typing_sound
-            else:
-                self.typing_sound = pygame.mixer.Sound(typing_sound)
-        else:
-            self.typing_sound = None
-        if unfocus_sound:
-            if isinstance(unfocus_sound, pygame.mixer.Sound):
-                self.unfocus_sound = unfocus_sound
-            else:
-                self.unfocus_sound = pygame.mixer.Sound(unfocus_sound)
-        else:
-            self.unfocus_sound = None
         self.border_thickness = border_thickness
         cursor_input = {
             "active_hover": active_hover_cursor,
@@ -102,15 +78,12 @@ class Entry:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the entry {self.text} because it's not a pygame.cursors.Cursor object. ({cursor})")
+                        f"No custom cursor is used for the entry {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.blinking_cursor = blinking_cursor
         self.font = font
         self.alignment = alignment
         self.alignment_spacing = alignment_spacing
-        self.focus_command = focus_command
-        self.typing_command = typing_command
-        self.unfocus_command = unfocus_command
         self.corner_radius = corner_radius
         self.repeat_delay = repeat_delay
         self.repeat_interval = repeat_interval
@@ -135,6 +108,7 @@ class Entry:
         self.cursor_visible = True
         self.last_blink_time = pygame.time.get_ticks()
         self.visible = True
+        self.bindings = {}
 
         all_entrys.append(self)
 
@@ -160,35 +134,16 @@ class Entry:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def play_focus_sound(self):
-        if self.focus_sound:
-            self.focus_sound.play()
+    def bind(self, event: str, command):
+        if event not in self.bindings:
+            self.bindings[event] = []
+        self.bindings[event].append(command)
         return self
 
-    def play_typing_sound(self):
-        if self.typing_sound:
-            self.typing_sound.play()
-        return self
-
-    def play_unfocus_sound(self):
-        if self.unfocus_sound:
-            self.unfocus_sound.play()
-        return self
-
-    def execute_focus_command(self):
-        if self.focus_command:
-            self.focus_command()
-        return self
-
-    def execute_typing_command(self):
-        if self.typing_command:
-            self.typing_command()
-        return self
-
-    def execute_unfocus_command(self):
-        if self.unfocus_command:
-            self.unfocus_command()
-        return self
+    def trigger_event(self, event: str, *args, **kwargs):
+        if event in self.bindings:
+            for command in self.bindings[event]:
+                command(*args, **kwargs)
 
     def get(self):
         return self.text
@@ -295,12 +250,10 @@ def process_key_action(entry, key, unicode_char):
             entry.text_copy()
         elif key == pygame.K_v:
             entry.text_paste()
-            entry.execute_typing_command()
-            entry.play_typing_sound()
+            entry.trigger_event("<PASTE>")
         elif key == pygame.K_x:
             entry.text_cut()
-            entry.execute_typing_command()
-            entry.play_typing_sound()
+            entry.trigger_event("<CUT>")
         elif key == pygame.K_a:
             entry.selection_anchor = 0
             entry.cursor_position = len(entry.text)
@@ -312,8 +265,7 @@ def process_key_action(entry, key, unicode_char):
             entry.selected_text = None
         elif entry.cursor_position > 0:
             entry.text_delete(entry.cursor_position - 1, entry.cursor_position)
-        entry.execute_typing_command()
-        entry.play_typing_sound()
+        entry.trigger_event("<BACKSPACE>")
         return
     elif key == pygame.K_DELETE:
         if entry.selected_text:
@@ -321,16 +273,14 @@ def process_key_action(entry, key, unicode_char):
             entry.selected_text = None
         elif entry.cursor_position < len(entry.text):
             entry.text_delete(entry.cursor_position, entry.cursor_position + 1)
-        entry.execute_typing_command()
-        entry.play_typing_sound()
+        entry.trigger_event("<DELETE>")
         return
     elif unicode_char.isprintable() and unicode_char != "":
         if entry.selected_text:
             entry.text_delete(*entry.selected_text)
             entry.selected_text = None
         entry.text_insert(unicode_char, entry.cursor_position)
-        entry.execute_typing_command()
-        entry.play_typing_sound()
+        entry.trigger_event("<TYPING>")
 
 
 def get_screen_offset(widget):
@@ -399,6 +349,16 @@ def draw(entry, surface: pygame.Surface):
         if entry.original_cursor:
             pygame.mouse.set_cursor(entry.original_cursor)
             entry.original_cursor = None
+
+    if is_hovering and not getattr(entry, "is_hovered", False):
+        entry.is_hovered = True
+        entry.trigger_event("<MOUSE-IN>")
+    elif is_hovering and getattr(entry, "is_hovered", False):
+        entry.is_hovered = True
+        entry.trigger_event("<HOVER>")
+    elif not is_hovering and getattr(entry, "is_hovered", False):
+        entry.is_hovered = False
+        entry.trigger_event("<MOUSE-OUT>")
 
     if entry.auto_size:
         text_w = entry.font.size(display_text)[0]
@@ -516,13 +476,11 @@ def react(entry, event=None):
             entry.selected_text = None
             if not entry.focused:
                 entry.focused = True
-                entry.play_focus_sound()
-                entry.execute_focus_command()
+                entry.trigger_event("<FOCUS-IN>")
             entry.reset_cursor_blink()
         else:
             if entry.pressed:
-                entry.play_unfocus_sound()
-                entry.execute_unfocus_command()
+                entry.trigger_event("<FOCUS-OUT>")
             entry.focused = False
     elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
         entry.pressed = False
@@ -536,6 +494,11 @@ def react(entry, event=None):
         process_key_action(entry, event.key, event.unicode)
         entry.held_key_info = (event.key, event.unicode)
         entry.next_repeat_time = pygame.time.get_ticks() + entry.repeat_delay
+        entry.trigger_event("<KEY>")
+        if event.unicode:
+            entry.trigger_event(event.unicode)
+        keyname = pygame.key.name(event.key)
+        entry.trigger_event(f"<{keyname.upper()}>")
     elif event.type == pygame.KEYUP:
         if entry.held_key_info and event.key == entry.held_key_info[0]:
             entry.held_key_info = None
