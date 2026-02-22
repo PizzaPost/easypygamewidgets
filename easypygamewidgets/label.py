@@ -235,8 +235,8 @@ class Label:
         if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs or 'text' in kwargs:
             tmp = self.font.render(self.text, True, (255, 255, 255))
             self.rect = pygame.Rect(self.x, self.y, tmp.get_width(), tmp.get_height())
-            self.width = self.rect.width
-            self.height = self.rect.height
+            self.width = self.rect.width + 40 + (self.alignment_spacing - 20)
+            self.height = self.rect.height + 20
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
 
