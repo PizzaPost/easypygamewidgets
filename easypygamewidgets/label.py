@@ -88,8 +88,8 @@ class Label:
         self.strikethrough = False
         self.underline = False
         self.auto_size = auto_size
-        self.width = tmp.get_width()
-        self.height = tmp.get_height()
+        self.width = tmp.get_width() + 40 + (alignment_spacing - 20)
+        self.height = tmp.get_height() + 20
         self.text = text
         self.state = state
         self.active_hover_text_color = active_hover_text_color
