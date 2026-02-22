@@ -281,12 +281,13 @@ def draw(slider, surface: pygame.Surface):
         slider.is_hovered = False
         slider.trigger_event("<MOUSE-OUT>")
 
+    temp_surf = slider.font.render(slider.text, True, text_color)
     if slider.auto_size:
-        temp_surf = slider.font.render(slider.text, True, text_color)
         slider.width = temp_surf.get_width() + 40 + (slider.alignment_spacing - 20)
         slider.rect = pygame.Rect(slider.x, slider.y, slider.width, slider.height)
 
     offset_x, offset_y = get_screen_offset(slider)
+    offset_y += temp_surf.get_height() * 1.25
     draw_rect = slider.rect.move(offset_x, offset_y)
 
     track_y = draw_rect.centery + 5
@@ -372,7 +373,8 @@ def draw(slider, surface: pygame.Surface):
 def is_point_in_rounded_rect(slider, point):
     offset_x, offset_y = get_screen_offset(slider)
     draw_rect = slider.rect.move(offset_x, offset_y)
-    track_y = draw_rect.centery + 5
+    temp_surf = slider.font.render(slider.text, True, (0, 0, 0))
+    track_y = draw_rect.centery + 10 + temp_surf.get_height()
     track_rect = pygame.Rect(draw_rect.x, track_y - (slider.height // 2), draw_rect.width, slider.height)
     x, y = point
     if not track_rect.collidepoint(point):
