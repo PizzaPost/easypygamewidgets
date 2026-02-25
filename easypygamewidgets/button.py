@@ -1,5 +1,7 @@
 import pygame
 
+from easypygamewidgets import fonts
+
 pygame.init()
 
 all_buttons = []
@@ -29,7 +31,7 @@ class Button:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
+                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
                  command=None, alignment_spacing: int = 20, corner_radius: int = 25):
         self.bindings = {}
         if screen:

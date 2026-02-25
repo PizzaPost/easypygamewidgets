@@ -2,6 +2,8 @@ import math
 
 import pygame
 
+from easypygamewidgets import fonts
+
 pygame.init()
 
 all_sliders = []
@@ -53,7 +55,7 @@ class Slider:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
+                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,

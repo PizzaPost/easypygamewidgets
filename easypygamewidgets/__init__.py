@@ -5,6 +5,7 @@ from .misc import check_update, link_pygame_window
 from .screen import Screen
 from .slider import Slider
 from .surface import Surface
+from .timekeeper import Timekeeper
 
 
 def flip():
@@ -22,6 +23,8 @@ def flip():
         label.draw(l, misc.pg)
     for s in surface.all_surfaces:
         surface.draw(s, misc.pg)
+    for t in timekeeper.all_timekeepers:
+        timekeeper.draw(t, misc.pg)
 
 
 def handle_event(event):
@@ -40,6 +43,9 @@ def handle_event(event):
     if len(surface.all_surfaces) > 0:
         for s in surface.all_surfaces:
             surface.react(s, event)
+    if len(timekeeper.all_timekeepers) > 0:
+        for t in timekeeper.all_timekeepers:
+            timekeeper.react(t, event)
 
 
 def handle_special_events():
@@ -55,3 +61,6 @@ def handle_special_events():
     if len(surface.all_surfaces) > 0:
         for s in surface.all_surfaces:
             surface.react(s)
+    if len(timekeeper.all_timekeepers) > 0:
+        for t in timekeeper.all_timekeepers:
+            timekeeper.react(t)

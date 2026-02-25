@@ -1,5 +1,7 @@
 import pygame
 
+from easypygamewidgets import fonts
+
 pygame.init()
 
 all_entrys = []
@@ -32,7 +34,7 @@ class Entry:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  blinking_cursor: str = "|",
-                 font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "left",
+                 font: pygame.font.Font = fonts.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
                  repeat_interval: int = 50):
         if screen:
@@ -469,6 +471,7 @@ def react(entry, event=None):
     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
         if is_point_in_rounded_rect(entry, event.pos):
             entry.pressed = True
+            entry.trigger_event("<PRESS>")
             idx = get_idx_at_mouse(event.pos[0])
             # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
             entry.cursor_position = min(len(entry.text), idx)
@@ -482,7 +485,8 @@ def react(entry, event=None):
             if entry.pressed:
                 entry.trigger_event("<FOCUS-OUT>")
             entry.focused = False
-    elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+    elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:  #
+        entry.trigger_event("<RELEASE>")
         entry.pressed = False
         entry.selection_anchor = None
     elif event.type == pygame.MOUSEMOTION and entry.pressed:

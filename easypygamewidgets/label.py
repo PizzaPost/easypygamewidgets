@@ -2,6 +2,8 @@ import time
 
 import pygame
 
+from easypygamewidgets import fonts
+
 pygame.init()
 
 all_labels = []
@@ -75,7 +77,7 @@ class Label:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = pygame.font.Font(None, 38), alignment: str = "center",
+                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25):
@@ -88,8 +90,12 @@ class Label:
         self.strikethrough = False
         self.underline = False
         self.auto_size = auto_size
-        self.width = tmp.get_width() + 40 + (alignment_spacing - 20)
-        self.height = tmp.get_height() + 20
+        if auto_size:
+            self.width = tmp.get_width() + 40 + (alignment_spacing - 20)
+            self.height = tmp.get_height() + 20
+        else:
+            self.width = width
+            self.height = height
         self.text = text
         self.state = state
         self.active_hover_text_color = active_hover_text_color

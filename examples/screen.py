@@ -15,9 +15,9 @@ def change_color():
     bg = (120, 20, 20)
 
 
-button = epw.Button(screen=screen, text="Click Me!", command=change_color, auto_size=False, width=250)
-slider = epw.Slider(text="Slide Me!", auto_size=False, width=250)
-entry = epw.Entry(placeholder_text="Enter something!", auto_size=False, width=250)
+button = epw.Button(screen=screen, text="Click Me!", command=change_color, auto_size=False, width=300)
+slider = epw.Slider(text="Slide Me!", auto_size=False, width=300)
+entry = epw.Entry(placeholder_text="Enter something!", auto_size=False, width=300)
 entry.set_screen(screen)
 screen.add_widget(slider)
 
@@ -28,7 +28,7 @@ enable_button = epw.Button(text="Enable", command=screen.enable)
 
 button.place(50, 50)
 slider.place(50, 180)
-entry.place(350, 50)
+entry.place(400, 50)
 hide_button.place(50, 440)
 show_button.place(50, 520)
 disable_button.place(200, 440)
