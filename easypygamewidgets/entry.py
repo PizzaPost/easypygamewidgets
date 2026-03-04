@@ -139,13 +139,12 @@ class Entry:
     def bind(self, event: str, command):
         if event not in self.bindings:
             self.bindings[event] = []
-        self.bindings[event].append(command)
+        self.bindings[event] = command
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            for command in self.bindings[event]:
-                command(*args, **kwargs)
+            self.bindings[event](*args, **kwargs)
 
     def get(self):
         return self.text
