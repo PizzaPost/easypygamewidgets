@@ -1,7 +1,7 @@
 # EasyPygameWidgets
 
-An easy-to-use UI widget library for pygame, featuring customizable buttons, sliders, text entries, and screen
-management.
+An easy-to-use UI widget library for pygame, featuring customizable buttons, sliders, text entries, screen management
+and much more.
 
 ## Features
 
@@ -103,7 +103,7 @@ A text entry with selection and clipboard support.
 
 ### Label
 
-A text display that can be used to drag it into places.
+A text display that can be used to drag it into places or show text.
 
 [example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/label.py)
 
@@ -113,6 +113,12 @@ This converts your pygame surfaces into an easypygamewidgets widget that can be 
 (All pygame surface commands can be applied to the "surface" attribute of your widget.)
 
 [example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/surface.py)
+
+### Timekeeper
+
+A text display that can show a timer or stopwatch.
+
+[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/timekeeper.py)
 
 ## Module Functions
 

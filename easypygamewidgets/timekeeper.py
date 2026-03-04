@@ -1,3 +1,4 @@
+import math
 import time
 
 import pygame
@@ -210,12 +211,13 @@ def get_screen_offset(widget):
 
 
 def split_to_values(widget, total_seconds):
-    widget.is_negative = total_seconds < 0
-    abs_secs = abs(total_seconds)
+    base_seconds = math.floor(total_seconds)
+    widget.is_negative = base_seconds < 0
+    abs_secs = abs(base_seconds)
     widget.hours = int(abs_secs // 3600)
     widget.minutes = int((abs_secs % 3600) // 60)
     widget.seconds = int(abs_secs % 60)
-    widget.milliseconds = abs_secs - int(abs_secs)
+    widget.milliseconds = abs(total_seconds) - int(abs(abs_secs))
 
 
 def draw(timekeeper, surface: pygame.Surface):
@@ -363,9 +365,9 @@ def react(timekeeper, event=None):
             next_value = curr + change
             if timekeeper.end_at is not None:
                 reached_limit = False
-                if not timekeeper.reversed and next_value >= timekeeper.end_at:
+                if not timekeeper.reversed and next_value >= timekeeper.end_at and not timekeeper.start_at > timekeeper.end_at:
                     reached_limit = True
-                elif timekeeper.reversed and next_value <= timekeeper.end_at:
+                elif timekeeper.reversed and next_value <= timekeeper.end_at and not timekeeper.start_at < timekeeper.end_at:
                     reached_limit = True
                 if reached_limit:
                     split_to_values(timekeeper, timekeeper.end_at)

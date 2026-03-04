@@ -1,0 +1,30 @@
+import pygame
+
+import easypygamewidgets as epw
+
+pygame.init()
+window = pygame.display.set_mode((800, 600))
+clock = pygame.time.Clock()
+epw.link_pygame_window(window)
+
+stopwatch = epw.Timekeeper(ticking=True, start_at=0)
+stopwatch.place(50, 50)
+
+timer = epw.Timekeeper(ticking=True, start_at=90, reversed=True)
+timer.place(50, 200)
+
+timer_with_milliseconds = epw.Timekeeper(ticking=True, start_at=90, reversed=True, show_milliseconds=True)
+timer_with_milliseconds.place(50, 350)
+
+running = True
+while running:
+    window.fill((30, 30, 30))
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        epw.handle_event(event)
+    epw.handle_special_events()
+    epw.flip()
+    pygame.display.update()
+    clock.tick(60)
+pygame.quit()
