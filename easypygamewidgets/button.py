@@ -283,6 +283,6 @@ def react(button, event=None):
                     button.pressed = True
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                button.pressed = False
                 if is_inside and button.pressed:
                     button.trigger_event("<RELEASE>")
+                button.pressed = False
