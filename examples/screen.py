@@ -7,7 +7,7 @@ window = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 bg = (30, 30, 30)
-screen = epw.Screen(id="main", visible=True, x=76, y=100)
+screen = epw.Screen(visible=True, x=76, y=100)
 
 
 def change_color():

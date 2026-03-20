@@ -35,7 +35,7 @@ clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 
 # create a screen (optional)
-screen = epw.Screen(id="main")
+screen = epw.Screen()
 
 # create a button
 button = epw.Button(screen=screen, text="Click Me!", width=200, height=50)
