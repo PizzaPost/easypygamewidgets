@@ -114,15 +114,17 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or is_point_in_rounded_rect(self, pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -268,17 +270,19 @@ def react(button, event=None):
         elif not pygame.mouse.get_pressed()[0] and not is_inside:
             button.pressed = False
     else:
-        if event.type == pygame.KEYDOWN and is_inside:
+        if event.type == pygame.KEYDOWN:
             button.trigger_event("<KEY>")
             if event.unicode:
                 button.trigger_event(event.unicode)
             keyname = pygame.key.name(event.key)
             button.trigger_event(f"<{keyname.upper()}>")
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and is_inside:
-                button.pressed = True
+            if event.button == 1:
                 button.trigger_event("<PRESS>")
+                if is_inside:
+                    button.pressed = True
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1 and is_inside and button.pressed:
+            if event.button == 1:
                 button.pressed = False
-                button.trigger_event("<RELEASE>")
+                if is_inside and button.pressed:
+                    button.trigger_event("<RELEASE>")
