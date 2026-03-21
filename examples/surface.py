@@ -7,7 +7,7 @@ window = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 
-screen = epw.Screen()
+screen = epw.Screen(visible=True)
 
 img_surface = epw.Surface(surface=pygame.image.load("surface_example.png"), screen=screen,
                           active_hover_cursor=pygame.cursors.tri_left)

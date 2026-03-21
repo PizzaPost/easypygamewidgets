@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 pygame.init()
@@ -10,14 +12,15 @@ class Surface:
                  state: str = "enabled",
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None):
+                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False):
         self.surface = surface
         if screen:
             screen.add_widget(self)
             self.screen = screen
         else:
             self.screen = None
-        self.state = state
+            self.visible = True
+            self.state = state
         cursor_input = {
             "active_hover": active_hover_cursor,
             "disabled_hover": disabled_hover_cursor,
@@ -32,13 +35,16 @@ class Surface:
                     print(
                         f"No custom cursor is used for the surface {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
+        self.dragable = dragable
         self.x = 0
         self.y = 0
         self.alive = True
         self.pressed = False
         self.rect = surface.get_rect()
         self.original_cursor = None
-        self.visible = True
+        self.drag_offset = None
+        self.is_dragging = False
+        self.last_checked_dragging = None
         self.bindings = {}
 
         all_surfaces.append(self)
@@ -47,7 +53,7 @@ class Surface:
         for key, value in kwargs.items():
             setattr(self, key, value)
         if 'x' in kwargs or 'y' in kwargs or 'surface' in kwargs:
-            self.rect = self.surface.get_rect()
+            self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
 
@@ -62,7 +68,7 @@ class Surface:
     def place(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.rect = self.surface.get_rect()
+        self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         return self
 
     def bind(self, event: str, command):
@@ -139,6 +145,7 @@ def react(surface, event=None):
     offset_x, offset_y = get_screen_offset(surface)
     interaction_rect = surface.rect.move(offset_x, offset_y)
     is_inside = interaction_rect.collidepoint(mouse_pos)
+    current_time = time.time()
     if not event:
         if pygame.mouse.get_pressed()[0] and is_inside:
             surface.pressed = True
@@ -150,6 +157,15 @@ def react(surface, event=None):
         elif not pygame.mouse.get_pressed()[0] and not is_inside:
             surface.pressed = False
     else:
+        if event.type == pygame.MOUSEMOTION:
+            if surface.pressed and surface.dragable:
+                if is_inside or surface.is_dragging:
+                    surface.is_dragging = True
+                    surface.last_checked_dragging = current_time
+                    if surface.drag_offset:
+                        new_x = mouse_pos[0] - surface.drag_offset[0] - offset_x
+                        new_y = mouse_pos[1] - surface.drag_offset[1] - offset_y
+                        surface.place(new_x, new_y)
         if event.type == pygame.KEYDOWN and is_inside:
             surface.trigger_event("<KEY>")
             if event.unicode:
@@ -159,8 +175,17 @@ def react(surface, event=None):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
                 surface.pressed = True
+                surface.drag_offset = (mouse_pos[0] - (surface.x + offset_x), mouse_pos[1] - (surface.y + offset_y))
                 surface.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and is_inside and surface.pressed:
                 surface.pressed = False
+                surface.is_dragging = False
                 surface.trigger_event("<RELEASE>")
+    if surface.last_checked_dragging:
+        if current_time - surface.last_checked_dragging > 0.2:
+            surface.is_dragging = False
+    if surface.pressed and not surface.is_dragging:
+        surface.trigger_event("<HOLD>")
+    if surface.pressed and surface.is_dragging:
+        surface.trigger_event("<DRAG>")

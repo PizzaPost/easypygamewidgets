@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 
 from easypygamewidgets import fonts
@@ -42,6 +44,8 @@ class Entry:
             self.screen = screen
         else:
             self.screen = None
+            self.visible = True
+            self.state = state
         self.auto_size = auto_size
         self.width = width
         self.height = height
@@ -49,7 +53,6 @@ class Entry:
         self.text = text
         self.char_limit = char_limit
         self.show = show
-        self.state = state
         self.active_unpressed_text_color = active_unpressed_text_color
         self.disabled_unpressed_text_color = disabled_unpressed_text_color
         self.active_hover_text_color = active_hover_text_color
@@ -109,7 +112,6 @@ class Entry:
         self.next_repeat_time = 0
         self.cursor_visible = True
         self.last_blink_time = pygame.time.get_ticks()
-        self.visible = True
         self.bindings = {}
 
         all_entrys.append(self)
@@ -136,15 +138,20 @@ class Entry:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        if event == "<FOCUS-OUT>" and require_hover:
+            print(
+                f"{self.text if self.text.strip() != "" else self.placeholder_text} has a binding for <FOCUS-OUT> with require_hover=True, which will never trigger.")
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or is_point_in_rounded_rect(self, pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def get(self):
         return self.text
@@ -225,8 +232,9 @@ class Entry:
 
 
 def process_key_action(entry, key, unicode_char):
+    is_linux = sys.platform.startswith("linux")
     mods = pygame.key.get_mods()
-    ctrl = mods & pygame.KMOD_CTRL
+    ctrl = (mods & pygame.KMOD_CTRL) or (mods & pygame.KMOD_META)
     shift = mods & pygame.KMOD_SHIFT
     entry.reset_cursor_blink()
     if key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_HOME, pygame.K_END):
@@ -247,15 +255,16 @@ def process_key_action(entry, key, unicode_char):
             entry.selection_anchor = None
         return
     if ctrl:
-        if key == pygame.K_c:
-            entry.text_copy()
-        elif key == pygame.K_v:
-            entry.text_paste()
-            entry.trigger_event("<PASTE>")
-        elif key == pygame.K_x:
-            entry.text_cut()
-            entry.trigger_event("<CUT>")
-        elif key == pygame.K_a:
+        if not is_linux or shift:
+            if key == pygame.K_c:
+                entry.text_copy()
+            elif key == pygame.K_v:
+                entry.text_paste()
+                entry.trigger_event("<PASTE>")
+            elif key == pygame.K_x:
+                entry.text_cut()
+                entry.trigger_event("<CUT>")
+        if key == pygame.K_a:
             entry.selection_anchor = 0
             entry.cursor_position = len(entry.text)
             entry.text_select(0, len(entry.text))
@@ -468,9 +477,11 @@ def react(entry, event=None):
         return min(len(display_text), len(entry.text))
 
     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        entry.trigger_event("<PRESS>")
+        if not entry.focused:
+            entry.trigger_event("<FOCUS-IN>")
         if is_point_in_rounded_rect(entry, event.pos):
             entry.pressed = True
-            entry.trigger_event("<PRESS>")
             idx = get_idx_at_mouse(event.pos[0])
             # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
             entry.cursor_position = min(len(entry.text), idx)
@@ -478,13 +489,12 @@ def react(entry, event=None):
             entry.selected_text = None
             if not entry.focused:
                 entry.focused = True
-                entry.trigger_event("<FOCUS-IN>")
             entry.reset_cursor_blink()
         else:
-            if entry.pressed:
+            if entry.focused:
                 entry.trigger_event("<FOCUS-OUT>")
             entry.focused = False
-    elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:  #
+    elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
         entry.trigger_event("<RELEASE>")
         entry.pressed = False
         entry.selection_anchor = None

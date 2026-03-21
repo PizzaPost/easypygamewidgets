@@ -65,13 +65,14 @@ class Slider:
             self.screen = screen
         else:
             self.screen = None
+            self.visible = True
+            self.state = state
         self.auto_size = auto_size
         self.width = width
         self.height = height
         self.text = text
         self.start = start
         self.end = end
-        self.state = state
         self.start = start
         self.end = end
         self.value = min(max(initial_value or start, start), end)
@@ -150,7 +151,6 @@ class Slider:
         self.rect = pygame.Rect(self.x, self.y, self.width, 60)
         self.original_cursor = None
         self.extra_dot_radius = 0
-        self.visible = True
         self.pressed_before = False
         self.last_value_update_time = 0
         self.bindings = {}

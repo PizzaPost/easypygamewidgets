@@ -87,6 +87,8 @@ class Label:
             self.screen = screen
         else:
             self.screen = None
+            self.visible = True
+            self.state = state
         self.strikethrough = False
         self.underline = False
         self.auto_size = auto_size
@@ -97,7 +99,6 @@ class Label:
             self.width = width
             self.height = height
         self.text = text
-        self.state = state
         self.active_hover_text_color = active_hover_text_color
         self.active_hover_text_color_alpha = active_hover_text_color_alpha
         self.active_hover_shadow_color = active_hover_shadow_color
@@ -227,7 +228,6 @@ class Label:
         self.pressed = False
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
-        self.visible = True
         self.drag_offset = None
         self.is_dragging = False
         self.last_checked_dragging = None
@@ -260,15 +260,21 @@ class Label:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        if event == "<MOUSE-OUT>" and require_hover:
+            print(f"{self.text} has a binding for <MOUSE-OUT> with require_hover=True, which will never trigger.")
+        if event == "<DRAG>" and not self.dragable:
+            print(f"{self.text} has a binding for <DRAG> but dragable=False.")
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or is_point_in_rounded_rect(self, pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -520,7 +526,6 @@ def react(label, event=None):
         return
     current_time = time.time()
     mouse_pos = pygame.mouse.get_pos()
-    if not is_point_in_rounded_rect(label, mouse_pos): return
     screen_off_x, screen_off_y = get_screen_offset(label)
     if event:
         if event.type == pygame.KEYDOWN:
@@ -531,12 +536,13 @@ def react(label, event=None):
             label.trigger_event(f"<{keyname.upper()}>")
         if event.type == pygame.MOUSEMOTION:
             if label.pressed and label.dragable:
-                label.is_dragging = True
-                label.last_checked_dragging = current_time
-                if label.drag_offset:
-                    new_x = mouse_pos[0] - label.drag_offset[0] - screen_off_x
-                    new_y = mouse_pos[1] - label.drag_offset[1] - screen_off_y
-                    label.place(new_x, new_y)
+                if is_point_in_rounded_rect(label, mouse_pos) or label.is_dragging:
+                    label.is_dragging = True
+                    label.last_checked_dragging = current_time
+                    if label.drag_offset:
+                        new_x = mouse_pos[0] - label.drag_offset[0] - screen_off_x
+                        new_y = mouse_pos[1] - label.drag_offset[1] - screen_off_y
+                        label.place(new_x, new_y)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 label.pressed = True

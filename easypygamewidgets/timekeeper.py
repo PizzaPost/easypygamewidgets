@@ -44,6 +44,8 @@ class Timekeeper:
             self.screen = screen
         else:
             self.screen = None
+            self.visible = True
+            self.state = state
         self.auto_size = auto_size
         self.width = width
         self.height = height
@@ -55,7 +57,6 @@ class Timekeeper:
         self.smart_minutes = smart_minutes
         self.show_hours = show_hours
         self.smart_hours = smart_hours
-        self.state = state
         self.active_unpressed_text_color = active_unpressed_text_color
         self.disabled_unpressed_text_color = disabled_unpressed_text_color
         self.active_hover_text_color = active_hover_text_color
@@ -99,7 +100,6 @@ class Timekeeper:
         self.pressed = False
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
-        self.visible = True
         self.last_updated = None
         self.is_negative = False
         self.bindings = {}

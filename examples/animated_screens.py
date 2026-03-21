@@ -7,7 +7,7 @@ window = pygame.display.set_mode((1000, 900))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 
-screen = epw.Screen().place(1000, 0)
+screen = epw.Screen(visible=True).place(1000, 0)
 target_x = 1000
 speed = 15
 

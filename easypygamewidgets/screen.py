@@ -26,6 +26,8 @@ class Screen:
             widget.screen.remove_widget(widget)
         self.widgets.append(widget)
         widget.screen = self
+        widget.visible = self.visible
+        widget.state = "enabled" if self.enabled else "disabled"
 
     def remove_widget(self, widget):
         if widget in self.widgets:
