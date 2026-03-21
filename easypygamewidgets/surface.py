@@ -72,15 +72,17 @@ class Surface:
         self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or self.rect.collidepoint(pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def set_screen(self, screen):
         if self.screen:
@@ -177,7 +179,7 @@ def react(surface, event=None):
                         new_x = mouse_pos[0] - surface.drag_offset[0] - offset_x
                         new_y = mouse_pos[1] - surface.drag_offset[1] - offset_y
                         surface.place(new_x, new_y)
-        if event.type == pygame.KEYDOWN and is_inside:
+        if event.type == pygame.KEYDOWN:
             surface.trigger_event("<KEY>")
             if event.unicode:
                 surface.trigger_event(event.unicode)

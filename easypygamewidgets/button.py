@@ -1,6 +1,6 @@
 import pygame
 
-from easypygamewidgets import fonts
+from easypygamewidgets import font
 
 pygame.init()
 
@@ -31,7 +31,7 @@ class Button:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
+                 font: pygame.font.Font = font.default_font, alignment: str = "center",
                  command=None, alignment_spacing: int = 20, corner_radius: int = 25):
         self.bindings = {}
         if screen:
@@ -288,10 +288,9 @@ def react(button, event=None):
             keyname = pygame.key.name(event.key)
             button.trigger_event(f"<{keyname.upper()}>")
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
+            if event.button == 1 and is_inside:
                 button.trigger_event("<PRESS>")
-                if is_inside:
-                    button.pressed = True
+                button.pressed = True
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 if is_inside and button.pressed:

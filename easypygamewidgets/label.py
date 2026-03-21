@@ -2,7 +2,7 @@ import time
 
 import pygame
 
-from easypygamewidgets import fonts
+from easypygamewidgets import font
 
 pygame.init()
 
@@ -77,7 +77,7 @@ class Label:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
+                 font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25):
@@ -262,10 +262,6 @@ class Label:
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):
-        if event == "<MOUSE-OUT>" and require_hover:
-            print(f"{self.text} has a binding for <MOUSE-OUT> with require_hover=True, which will never trigger.")
-        if event == "<DRAG>" and not self.dragable:
-            print(f"{self.text} has a binding for <DRAG> but dragable=False.")
         self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
@@ -537,6 +533,7 @@ def react(label, event=None):
         return
     current_time = time.time()
     mouse_pos = pygame.mouse.get_pos()
+    is_inside = is_point_in_rounded_rect(label, mouse_pos)
     screen_off_x, screen_off_y = get_screen_offset(label)
     if event:
         if event.type == pygame.KEYDOWN:
@@ -547,19 +544,19 @@ def react(label, event=None):
             label.trigger_event(f"<{keyname.upper()}>")
         if event.type == pygame.MOUSEMOTION:
             if label.pressed and label.dragable:
-                if is_point_in_rounded_rect(label, mouse_pos) or label.is_dragging:
+                if is_inside or label.is_dragging:
                     label.is_dragging = True
                     label.last_checked_dragging = current_time
                     if label.drag_offset:
                         new_x = mouse_pos[0] - label.drag_offset[0] - screen_off_x
                         new_y = mouse_pos[1] - label.drag_offset[1] - screen_off_y
                         label.place(new_x, new_y)
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN and is_inside:
             if event.button == 1:
                 label.pressed = True
                 label.drag_offset = (mouse_pos[0] - (label.x + screen_off_x), mouse_pos[1] - (label.y + screen_off_y))
                 label.trigger_event("<PRESS>")
-        elif event.type == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP and is_inside:
             if event.button == 1:
                 label.pressed = False
                 label.is_dragging = False

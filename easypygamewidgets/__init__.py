@@ -1,6 +1,6 @@
 from .button import Button
 from .entry import Entry
-from .fonts import create_font
+from .font import Font
 from .label import Label
 from .misc import disable_update_check, link_pygame_window
 from .screen import Screen

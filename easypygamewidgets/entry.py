@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from easypygamewidgets import fonts
+from easypygamewidgets import font
 
 pygame.init()
 
@@ -36,7 +36,7 @@ class Entry:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  blinking_cursor: str = "|",
-                 font: pygame.font.Font = fonts.default_font, alignment: str = "left",
+                 font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
                  repeat_interval: int = 50):
         if screen:
@@ -140,9 +140,6 @@ class Entry:
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):
-        if event == "<FOCUS-OUT>" and require_hover:
-            print(
-                f"{self.text if self.text.strip() != "" else self.placeholder_text} has a binding for <FOCUS-OUT> with require_hover=True, which will never trigger.")
         self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
@@ -478,6 +475,7 @@ def react(entry, event=None):
     if entry.state != "enabled" or not entry.visible:
         return
     display_text = entry.get_display_text()
+    is_inside = is_point_in_rounded_rect(entry, pygame.mouse.get_pos())
 
     def get_idx_at_mouse(mouse_x):
         curr_x = entry.last_text_x
@@ -488,10 +486,11 @@ def react(entry, event=None):
         return min(len(display_text), len(entry.text))
 
     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-        entry.trigger_event("<PRESS>")
+        if is_inside:
+            entry.trigger_event("<PRESS>")
         if not entry.focused:
             entry.trigger_event("<FOCUS-IN>")
-        if is_point_in_rounded_rect(entry, event.pos):
+        if is_inside:
             entry.pressed = True
             idx = get_idx_at_mouse(event.pos[0])
             # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
@@ -514,10 +513,11 @@ def react(entry, event=None):
             entry.cursor_position = get_idx_at_mouse(event.pos[0])
             entry.text_select(entry.selection_anchor, entry.cursor_position)
             entry.reset_cursor_blink()
-    elif event.type == pygame.KEYDOWN and entry.focused:
-        process_key_action(entry, event.key, event.unicode)
-        entry.held_key_info = (event.key, event.unicode)
-        entry.next_repeat_time = pygame.time.get_ticks() + entry.repeat_delay
+    elif event.type == pygame.KEYDOWN:
+        if entry.focused:
+            process_key_action(entry, event.key, event.unicode)
+            entry.held_key_info = (event.key, event.unicode)
+            entry.next_repeat_time = pygame.time.get_ticks() + entry.repeat_delay
         entry.trigger_event("<KEY>")
         if event.unicode:
             entry.trigger_event(event.unicode)

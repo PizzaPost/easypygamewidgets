@@ -2,7 +2,7 @@ import math
 
 import pygame
 
-from easypygamewidgets import fonts
+from easypygamewidgets import font
 
 pygame.init()
 
@@ -55,7 +55,7 @@ class Slider:
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
+                 font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
@@ -180,15 +180,17 @@ class Slider:
         self.rect = pygame.Rect(self.x, self.y, self.width, 60)
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or is_point_in_rounded_rect(self, pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def get(self):
         return self.value
@@ -454,7 +456,7 @@ def react(slider, event=None):
                 slider.pressed_before = False
                 slider.trigger_event("<RELEASE>")
     else:
-        if event.type == pygame.KEYDOWN and is_inside:
+        if event.type == pygame.KEYDOWN:
             slider.trigger_event("<KEY>")
             if event.unicode:
                 slider.trigger_event(event.unicode)

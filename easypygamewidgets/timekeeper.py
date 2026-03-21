@@ -3,7 +3,7 @@ import time
 
 import pygame
 
-from easypygamewidgets import fonts
+from easypygamewidgets import font
 
 pygame.init()
 
@@ -24,20 +24,20 @@ class Timekeeper:
                  active_pressed_text_color: tuple = (200, 200, 200),
                  active_unpressed_background_color: tuple = (50, 50, 50),
                  disabled_unpressed_background_color: tuple = (30, 30, 30),
-                 active_hover_background_color: tuple = (70, 70, 70),
+                 active_hover_background_color: tuple = (50, 50, 50),
                  disabled_hover_background_color: tuple = (30, 30, 30),
                  active_pressed_background_color: tuple = (40, 40, 40),
                  active_unpressed_border_color: tuple = (100, 100, 100),
                  disabled_unpressed_border_color: tuple = (60, 60, 60),
-                 active_hover_border_color: tuple = (150, 150, 150),
+                 active_hover_border_color: tuple = (100, 100, 100),
                  disabled_hover_border_color: tuple = (60, 60, 60),
                  active_pressed_border_color: tuple = (50, 50, 50),
                  border_thickness: int = 2,
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
-                 font: pygame.font.Font = fonts.default_font, alignment: str = "center",
-                 alignment_spacing: int = 20, corner_radius: int = 25, ticking: bool = False,
+                 font: pygame.font.Font = font.default_font, alignment: str = "center",
+                 alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
                  type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False):
         if screen:
             screen.add_widget(self)
@@ -131,15 +131,17 @@ class Timekeeper:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
-    def bind(self, event: str, command):
-        if event not in self.bindings:
-            self.bindings[event] = []
-        self.bindings[event] = command
+    def bind(self, event: str, command, require_hover: bool = True):
+        self.bindings[event] = {"command": command, "require_hover": require_hover}
         return self
 
     def trigger_event(self, event: str, *args, **kwargs):
         if event in self.bindings:
-            self.bindings[event](*args, **kwargs)
+            binding_data = self.bindings[event]
+            command = binding_data["command"]
+            require_hover = binding_data["require_hover"]
+            if not require_hover or is_point_in_rounded_rect(self, pygame.mouse.get_pos()):
+                command(*args, **kwargs)
 
     def get_display_text(self):
         values = {
@@ -301,6 +303,7 @@ def draw(timekeeper, surface: pygame.Surface):
         text_w = timekeeper.font.size(display_text)[0]
         exact_w = text_w + (timekeeper.alignment_spacing * 2)
         timekeeper.rect.width = (exact_w + 39) // 40 * 40
+        timekeeper.rect.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
     draw_rect = timekeeper.rect.move(offset_x, offset_y)
     pygame.draw.rect(surface, bg_color, draw_rect, border_radius=timekeeper.corner_radius)
     if timekeeper.border_thickness > 0:
@@ -356,13 +359,13 @@ def is_point_in_rounded_rect(timekeeper, point):
 def react(timekeeper, event=None):
     if timekeeper.state != "enabled" or not timekeeper.visible:
         return
+    is_inside = is_point_in_rounded_rect(timekeeper, pygame.mouse.get_pos())
     if event:
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if is_point_in_rounded_rect(timekeeper, event.pos):
-                timekeeper.trigger_event("<PRESS>")
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and is_inside:
+            timekeeper.trigger_event("<PRESS>")
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1 and is_inside:
             timekeeper.trigger_event("<RELEASE>")
-        elif event.type == pygame.KEYDOWN and timekeeper.focused:
+        elif event.type == pygame.KEYDOWN:
             timekeeper.trigger_event("<KEY>")
             if event.unicode:
                 timekeeper.trigger_event(event.unicode)
