@@ -245,6 +245,7 @@ class Label:
             self.height = self.rect.height + 20
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        return self
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -282,6 +283,7 @@ class Label:
                 self.screen.widgets.remove(self)
         self.screen = screen
         screen.add_widget(self)
+        return self
 
     def set_strikethrough(self, value: bool):
         self.strikethrough = value
@@ -289,6 +291,15 @@ class Label:
 
     def set_underline(self, value: bool):
         self.underline = value
+        return self
+
+    def unbind(self, event: str):
+        if event in self.bindings:
+            del self.bindings[event]
+        return self
+
+    def unbind_all(self):
+        self.bindings.clear()
         return self
 
 

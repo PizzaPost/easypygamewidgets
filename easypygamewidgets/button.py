@@ -99,6 +99,7 @@ class Button:
             self.set_screen(kwargs["screen"])
         if 'command' in kwargs:
             self.bind("<RELEASE>", kwargs['command'])
+        return self
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -132,6 +133,16 @@ class Button:
                 self.screen.widgets.remove(self)
         self.screen = screen
         screen.add_widget(self)
+        return self
+
+    def unbind(self, event: str):
+        if event in self.bindings:
+            del self.bindings[event]
+        return self
+
+    def unbind_all(self):
+        self.bindings.clear()
+        return self
 
 
 def get_screen_offset(widget):

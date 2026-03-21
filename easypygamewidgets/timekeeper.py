@@ -115,6 +115,7 @@ class Timekeeper:
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        return self
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -170,30 +171,37 @@ class Timekeeper:
 
     def set(self, milliseconds=0, seconds=0, minutes=0, hours=0):
         split_to_values(self, hours * 3600 + minutes * 60 + seconds + milliseconds / 1000)
+        return self
 
     def stop(self):
         self.ticking = False
+        return self
 
     def resume(self):
         self.ticking = True
+        return self
 
     def start(self):
         self.ticking = True
+        return self
 
     def reset(self):
         split_to_values(self, self.start_at)
+        return self
 
     def add(self, amount):
         sign = -1 if self.is_negative else 1
         curr = ((self.hours * 3600) + (self.minutes * 60) + self.seconds + self.milliseconds) * sign
         curr += amount
         split_to_values(self, curr)
+        return self
 
     def subtract(self, amount):
         sign = -1 if self.is_negative else 1
         curr = ((self.hours * 3600) + (self.minutes * 60) + self.seconds + self.milliseconds) * sign
         curr -= amount
         split_to_values(self, curr)
+        return self
 
     def set_screen(self, screen):
         if self.screen:
@@ -201,6 +209,16 @@ class Timekeeper:
                 self.screen.widgets.remove(self)
         self.screen = screen
         screen.add_widget(self)
+        return self
+
+    def unbind(self, event: str):
+        if event in self.bindings:
+            del self.bindings[event]
+        return self
+
+    def unbind_all(self):
+        self.bindings.clear()
+        return self
 
 
 def get_screen_offset(widget):

@@ -56,6 +56,7 @@ class Surface:
             self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        return self
 
     def config(self, **kwargs):
         self.configure(**kwargs)
@@ -87,6 +88,16 @@ class Surface:
                 self.screen.widgets.remove(self)
         self.screen = screen
         screen.add_widget(self)
+        return self
+
+    def unbind(self, event: str):
+        if event in self.bindings:
+            del self.bindings[event]
+        return self
+
+    def unbind_all(self):
+        self.bindings.clear()
+        return self
 
 
 def get_screen_offset(widget):

@@ -28,10 +28,12 @@ class Screen:
         widget.screen = self
         widget.visible = self.visible
         widget.state = "enabled" if self.enabled else "disabled"
+        return self
 
     def remove_widget(self, widget):
         if widget in self.widgets:
             self.widgets.remove(widget)
+        return self
 
     def show(self):
         self.visible = True
