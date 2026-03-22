@@ -15,15 +15,18 @@ img_surface.bind("<RELEASE>", lambda: exit(0))
 img_surface.place(0, 0)
 screen.place(100, 100)
 
+
+def draw():
+    window.fill((30, 30, 30))
+
+
 running = True
 while running:
-    window.fill((30, 30, 30))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip()
-    pygame.display.update()
+    epw.flip(draw)
     clock.tick(60)
 pygame.quit()

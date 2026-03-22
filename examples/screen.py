@@ -34,15 +34,18 @@ show_button.place(50, 520)
 disable_button.place(200, 440)
 enable_button.place(200, 520)
 
+
+def draw():
+    window.fill(bg)
+
+
 running = True
 while running:
-    window.fill(bg)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip()
-    pygame.display.update()
+    epw.flip(draw)
     clock.tick(60)
 pygame.quit()

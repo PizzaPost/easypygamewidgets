@@ -25,9 +25,13 @@ def trigger_hide():
 button1 = epw.Button(text="Show GUI", auto_size=False, command=trigger_show).place(x=50, y=100)
 button2 = epw.Button(screen=screen, text="Hide GUI", auto_size=False, command=trigger_hide).place(x=0, y=100)
 
+
+def draw():
+    window.fill((30, 30, 30))
+
+
 running = True
 while running:
-    window.fill((30, 30, 30))
     if screen.x != target_x:
         direction = 1 if target_x > screen.x else -1
         new_x = screen.x + (speed * direction)
@@ -39,8 +43,7 @@ while running:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip()
-    pygame.display.update()
+    epw.flip(draw)
     clock.tick(60)
 
 pygame.quit()

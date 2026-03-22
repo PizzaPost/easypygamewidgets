@@ -484,44 +484,45 @@ def react(entry, event=None):
             curr_x += char_w
         return min(len(display_text), len(entry.text))
 
-    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-        if is_inside:
-            entry.trigger_event("<PRESS>")
-        if not entry.focused:
-            entry.trigger_event("<FOCUS-IN>")
-        if is_inside:
-            entry.pressed = True
-            idx = get_idx_at_mouse(event.pos[0])
-            # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
-            entry.cursor_position = min(len(entry.text), idx)
-            entry.selection_anchor = idx
-            entry.selected_text = None
+    if event:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if is_inside:
+                entry.trigger_event("<PRESS>")
             if not entry.focused:
-                entry.focused = True
-            entry.reset_cursor_blink()
-        else:
+                entry.trigger_event("<FOCUS-IN>")
+            if is_inside:
+                entry.pressed = True
+                idx = get_idx_at_mouse(event.pos[0])
+                # This somehow has to be redone because """return min(len(display_text), len(entry.text))""" doesn't work
+                entry.cursor_position = min(len(entry.text), idx)
+                entry.selection_anchor = idx
+                entry.selected_text = None
+                if not entry.focused:
+                    entry.focused = True
+                entry.reset_cursor_blink()
+            else:
+                if entry.focused:
+                    entry.trigger_event("<FOCUS-OUT>")
+                entry.focused = False
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            entry.trigger_event("<RELEASE>")
+            entry.pressed = False
+            entry.selection_anchor = None
+        elif event.type == pygame.MOUSEMOTION and entry.pressed:
+            if entry.selection_anchor is not None:
+                entry.cursor_position = get_idx_at_mouse(event.pos[0])
+                entry.text_select(entry.selection_anchor, entry.cursor_position)
+                entry.reset_cursor_blink()
+        elif event.type == pygame.KEYDOWN:
             if entry.focused:
-                entry.trigger_event("<FOCUS-OUT>")
-            entry.focused = False
-    elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-        entry.trigger_event("<RELEASE>")
-        entry.pressed = False
-        entry.selection_anchor = None
-    elif event.type == pygame.MOUSEMOTION and entry.pressed:
-        if entry.selection_anchor is not None:
-            entry.cursor_position = get_idx_at_mouse(event.pos[0])
-            entry.text_select(entry.selection_anchor, entry.cursor_position)
-            entry.reset_cursor_blink()
-    elif event.type == pygame.KEYDOWN:
-        if entry.focused:
-            process_key_action(entry, event.key, event.unicode)
-            entry.held_key_info = (event.key, event.unicode)
-            entry.next_repeat_time = pygame.time.get_ticks() + entry.repeat_delay
-        entry.trigger_event("<KEY>")
-        if event.unicode:
-            entry.trigger_event(event.unicode)
-        keyname = pygame.key.name(event.key)
-        entry.trigger_event(f"<{keyname.upper()}>")
-    elif event.type == pygame.KEYUP:
-        if entry.held_key_info and event.key == entry.held_key_info[0]:
-            entry.held_key_info = None
+                process_key_action(entry, event.key, event.unicode)
+                entry.held_key_info = (event.key, event.unicode)
+                entry.next_repeat_time = pygame.time.get_ticks() + entry.repeat_delay
+            entry.trigger_event("<KEY>")
+            if event.unicode:
+                entry.trigger_event(event.unicode)
+            keyname = pygame.key.name(event.key)
+            entry.trigger_event(f"<{keyname.upper()}>")
+        elif event.type == pygame.KEYUP:
+            if entry.held_key_info and event.key == entry.held_key_info[0]:
+                entry.held_key_info = None

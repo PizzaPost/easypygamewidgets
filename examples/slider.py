@@ -22,15 +22,10 @@ slider.bind("<DRAG>", change_speed)
 # slider.set(speed)
 slider.place(50, 50)
 
-running = True
-while running:
-    window.fill((30, 30, 30))
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        epw.handle_event(event)
-    epw.handle_special_events()
 
+def draw():
+    global x_pos, speed
+    window.fill((30, 30, 30))
     if x_pos > 380:
         pygame.draw.circle(window, (255, 255, 255), (x_pos - 400, 250), 20)
     pygame.draw.circle(window, (255, 255, 255), (x_pos, 250), 20)
@@ -38,7 +33,14 @@ while running:
     if x_pos > 420:
         x_pos = 20
 
-    epw.flip()
-    pygame.display.update()
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        epw.handle_event(event)
+    epw.handle_special_events()
+    epw.flip(draw)
     clock.tick(60)
 pygame.quit()

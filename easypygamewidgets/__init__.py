@@ -11,7 +11,7 @@ from .surface import Surface
 from .timekeeper import Timekeeper
 
 
-def flip(pygame_draw_function: function = None):
+def flip(pygame_draw_function=None):
     if not misc.pg:
         misc.check_linked()
     for widget in misc.all_widgets:
@@ -39,19 +39,30 @@ def flip(pygame_draw_function: function = None):
 def handle_event(event):
     for widget in misc.all_widgets:
         if isinstance(widget, Button):
-            button.react(b, event)
-            button.react(b)
+            button.react(widget, event)
         elif isinstance(widget, Slider):
             slider.react(widget, event)
-            slider.react(widget)
         elif isinstance(widget, Entry):
             entry.react(widget, event)
         elif isinstance(widget, Label):
             label.react(widget, event)
-            label.react(widget)
         elif isinstance(widget, Surface):
             surface.react(widget, event)
-            surface.react(widget)
         elif isinstance(widget, Timekeeper):
             timekeeper.react(widget, event)
+
+
+def handle_special_events():
+    for widget in misc.all_widgets:
+        if isinstance(widget, Button):
+            button.react(widget)
+        elif isinstance(widget, Slider):
+            slider.react(widget)
+        elif isinstance(widget, Entry):
+            entry.react(widget)
+        elif isinstance(widget, Label):
+            label.react(widget)
+        elif isinstance(widget, Surface):
+            surface.react(widget)
+        elif isinstance(widget, Timekeeper):
             timekeeper.react(widget)

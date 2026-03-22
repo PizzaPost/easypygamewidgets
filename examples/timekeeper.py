@@ -16,15 +16,18 @@ timer.place(50, 200)
 timer_with_milliseconds = epw.Timekeeper(ticking=True, start_at=90, reversed=True, show_milliseconds=True)
 timer_with_milliseconds.place(50, 350)
 
+
+def draw():
+    window.fill((30, 30, 30))
+
+
 running = True
 while running:
-    window.fill((30, 30, 30))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip()
-    pygame.display.update()
+    epw.flip(draw)
     clock.tick(60)
 pygame.quit()
