@@ -2,11 +2,9 @@ import sys
 
 import pygame
 
-from easypygamewidgets import font
+from easypygamewidgets import font, misc
 
 pygame.init()
-
-all_entrys = []
 
 
 class Entry:
@@ -38,7 +36,7 @@ class Entry:
                  blinking_cursor: str = "|",
                  font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
-                 repeat_interval: int = 50):
+                 repeat_interval: int = 50, layer=1000):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -92,6 +90,7 @@ class Entry:
         self.corner_radius = corner_radius
         self.repeat_delay = repeat_delay
         self.repeat_interval = repeat_interval
+        self.layer = layer
         self.x = 0
         self.y = 0
         self.alive = True
@@ -114,7 +113,7 @@ class Entry:
         self.last_blink_time = pygame.time.get_ticks()
         self.bindings = {}
 
-        all_entrys.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -130,8 +129,8 @@ class Entry:
 
     def delete(self):
         self.alive = False
-        if self in all_entrys:
-            all_entrys.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x

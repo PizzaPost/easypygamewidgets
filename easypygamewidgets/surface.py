@@ -2,9 +2,9 @@ import time
 
 import pygame
 
-pygame.init()
+from easypygamewidgets import misc
 
-all_surfaces = []
+pygame.init()
 
 
 class Surface:
@@ -12,7 +12,7 @@ class Surface:
                  state: str = "enabled",
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False):
+                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000):
         self.surface = surface
         if screen:
             screen.add_widget(self)
@@ -36,6 +36,7 @@ class Surface:
                         f"No custom cursor is used for the surface {self.text} because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.dragable = dragable
+        self.layer = layer
         self.x = 0
         self.y = 0
         self.alive = True
@@ -47,7 +48,7 @@ class Surface:
         self.last_checked_dragging = None
         self.bindings = {}
 
-        all_surfaces.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -63,8 +64,8 @@ class Surface:
 
     def delete(self):
         self.alive = False
-        if self in all_surfaces:
-            all_surfaces.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x
@@ -81,7 +82,8 @@ class Surface:
             binding_data = self.bindings[event]
             command = binding_data["command"]
             require_hover = binding_data["require_hover"]
-            if not require_hover or self.rect.collidepoint(pygame.mouse.get_pos()):
+            offset_x, offset_y = get_screen_offset(self)
+            if not require_hover or self.rect.move(offset_x, offset_y).collidepoint(pygame.mouse.get_pos()):
                 command(*args, **kwargs)
 
     def set_screen(self, screen):

@@ -2,11 +2,9 @@ import time
 
 import pygame
 
-from easypygamewidgets import font
+from easypygamewidgets import font, misc
 
 pygame.init()
-
-all_labels = []
 
 
 class Label:
@@ -80,7 +78,7 @@ class Label:
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
-                 bottom_right_corner_radius: int = 25):
+                 bottom_right_corner_radius: int = 25, layer=1000):
         tmp = font.render(text, True, (255, 255, 255))
         if screen:
             screen.add_widget(self)
@@ -222,6 +220,7 @@ class Label:
         self.top_right_corner_radius = top_right_corner_radius
         self.bottom_left_corner_radius = bottom_left_corner_radius
         self.bottom_right_corner_radius = bottom_right_corner_radius
+        self.layer = layer
         self.x = 0
         self.y = 0
         self.alive = True
@@ -233,7 +232,7 @@ class Label:
         self.last_checked_dragging = None
         self.bindings = {}
 
-        all_labels.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -252,8 +251,8 @@ class Label:
 
     def delete(self):
         self.alive = False
-        if self in all_labels:
-            all_labels.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x

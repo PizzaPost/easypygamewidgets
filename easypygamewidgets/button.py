@@ -1,10 +1,8 @@
 import pygame
 
-from easypygamewidgets import font
+from easypygamewidgets import font, misc
 
 pygame.init()
-
-all_buttons = []
 
 
 class Button:
@@ -32,7 +30,7 @@ class Button:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 20, corner_radius: int = 25):
+                 command=None, alignment_spacing: int = 20, corner_radius: int = 25, layer=1000):
         self.bindings = {}
         if screen:
             screen.add_widget(self)
@@ -81,6 +79,7 @@ class Button:
             self.bind("<RELEASE>", command)
         self.alignment_spacing = alignment_spacing
         self.corner_radius = corner_radius
+        self.layer = layer
         self.x = 0
         self.y = 0
         self.alive = True
@@ -88,7 +87,7 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
 
-        all_buttons.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -106,8 +105,8 @@ class Button:
 
     def delete(self):
         self.alive = False
-        if self in all_buttons:
-            all_buttons.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x

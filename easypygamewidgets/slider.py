@@ -2,11 +2,9 @@ import math
 
 import pygame
 
-from easypygamewidgets import font
+from easypygamewidgets import font, misc
 
 pygame.init()
-
-all_sliders = []
 
 
 class Slider:
@@ -59,7 +57,7 @@ class Slider:
                  alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
-                 show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150):
+                 show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -144,6 +142,7 @@ class Slider:
         self.round_display_value = round_display_value
         self.show_full_rounding_of_whole_numbers = show_full_rounding_of_whole_numbers
         self.trigger_hold_delay = trigger_hold_delay
+        self.layer = layer
         self.x = 0
         self.y = font.render(text, True, (255, 255, 255)).get_height()
         self.alive = True
@@ -155,7 +154,7 @@ class Slider:
         self.last_value_update_time = 0
         self.bindings = {}
 
-        all_sliders.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -171,8 +170,8 @@ class Slider:
 
     def delete(self):
         self.alive = False
-        if self in all_sliders:
-            all_sliders.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x

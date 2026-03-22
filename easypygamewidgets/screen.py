@@ -1,23 +1,24 @@
 import pygame
 
-pygame.init()
+from easypygamewidgets import misc
 
-all_screens = []
+pygame.init()
 
 
 class Screen:
     def __init__(self,
                  widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidgets.Slider | easypygamewidgets.Label] | easypygamewidgets.Surface | None" = None,
                  darken_background_with_alpha: int = 0, visible: bool = False, enabled: bool = True, x: int = 0,
-                 y: int = 0):
+                 y: int = 0, layer=1000):
         self.widgets = widgets if widgets is not None else []
         self.darken_background_with_alpha = max(min(darken_background_with_alpha, 255), 0)
         self.visible = visible
         self.enabled = enabled
         self.x = x
         self.y = y
+        self.layer = layer
 
-        all_screens.append(self)
+        misc.add_widget(self)
 
         self.update_widget_state(True, True)
 

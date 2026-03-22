@@ -3,11 +3,9 @@ import time
 
 import pygame
 
-from easypygamewidgets import font
+from easypygamewidgets import font, misc
 
 pygame.init()
-
-all_timekeepers = []
 
 
 class Timekeeper:
@@ -38,7 +36,7 @@ class Timekeeper:
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
-                 type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False):
+                 type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -94,6 +92,7 @@ class Timekeeper:
         self.ticking = ticking
         self.type_order = type_order
         self.reversed = reversed
+        self.layer = layer
         self.x = 0
         self.y = 0
         self.alive = True
@@ -106,7 +105,7 @@ class Timekeeper:
 
         split_to_values(self, start_at)
 
-        all_timekeepers.append(self)
+        misc.add_widget(self)
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -122,8 +121,8 @@ class Timekeeper:
 
     def delete(self):
         self.alive = False
-        if self in all_timekeepers:
-            all_timekeepers.remove(self)
+        if self in misc.all_widgets:
+            misc.all_widgets.remove(self)
 
     def place(self, x: int, y: int):
         self.x = x
