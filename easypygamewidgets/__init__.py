@@ -4,7 +4,7 @@ from .button import Button
 from .entry import Entry
 from .font import Font
 from .label import Label
-from .misc import disable_update_check, link_pygame_window
+from .misc import disable_update_check, link_pygame_window, create_pygame_layer
 from .screen import Screen
 from .slider import Slider
 from .surface import Surface
@@ -16,8 +16,11 @@ def flip(pygame_draw_function=None):
         misc.check_linked()
     for widget in misc.all_widgets:
         if isinstance(widget, tuple):
-            if pygame_draw_function:
-                pygame_draw_function()
+            if isinstance(widget[0], pygame.Surface):
+                if pygame_draw_function:
+                    pygame_draw_function()
+            else:
+                widget[0]()
         else:
             if isinstance(widget, Screen):
                 screen.draw(widget, misc.pg)
