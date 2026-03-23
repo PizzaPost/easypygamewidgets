@@ -122,6 +122,8 @@ class Entry:
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        if 'layer' in kwargs:
+            misc.resort_layers()
         return self
 
     def config(self, **kwargs):

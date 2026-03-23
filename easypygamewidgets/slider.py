@@ -163,6 +163,8 @@ class Slider:
             self.rect = pygame.Rect(self.x, self.y, self.width, 60)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        if 'layer' in kwargs:
+            misc.resort_layers()
         return self
 
     def config(self, **kwargs):

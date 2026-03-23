@@ -2,7 +2,7 @@ import time
 
 import pygame
 
-from easypygamewidgets import misc
+from easypygamewidgets import misc, resort_layers
 
 pygame.init()
 
@@ -57,6 +57,8 @@ class Surface:
             self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
+        if 'layer' in kwargs:
+            misc.resort_layers()
         return self
 
     def config(self, **kwargs):

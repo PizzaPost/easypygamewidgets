@@ -15,7 +15,7 @@ def check_update():
         response.raise_for_status()
         data = response.json()
         latest_version = data["version"]
-        if latest_version != "26.2":
+        if latest_version != "26.3":
             print("An update is available. Download it now with 'pip install --upgrade easypygamewidgets'")
     except Exception as e:
         print(f"easypygamewidgets: Failed to check for updates: {e}")
@@ -41,9 +41,13 @@ def link_pygame_window(window: pygame.Surface, layer=500):
 
 def add_widget(widget):
     all_widgets.append(widget)
-    all_widgets.sort(key=lambda w: w[1] if isinstance(w, tuple) else w.layer)
+    resort_layers()
 
 
 def create_pygame_layer(function, layer):
     all_widgets.append((function, layer))
+    resort_layers()
+
+
+def resort_layers():
     all_widgets.sort(key=lambda w: w[1] if isinstance(w, tuple) else w.layer)

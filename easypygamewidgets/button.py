@@ -98,6 +98,8 @@ class Button:
             self.set_screen(kwargs["screen"])
         if 'command' in kwargs:
             self.bind("<RELEASE>", kwargs['command'])
+        if 'layer' in kwargs:
+            misc.resort_layers()
         return self
 
     def config(self, **kwargs):
