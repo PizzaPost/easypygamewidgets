@@ -2,7 +2,7 @@ import time
 
 import pygame
 
-from easypygamewidgets import misc, resort_layers
+from easypygamewidgets import misc
 
 pygame.init()
 
