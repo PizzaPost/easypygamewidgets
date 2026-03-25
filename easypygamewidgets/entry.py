@@ -36,7 +36,7 @@ class Entry:
                  blinking_cursor: str = "|",
                  font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
-                 repeat_interval: int = 50, layer=1000):
+                 repeat_interval: int = 50, layer=1000, data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -91,6 +91,7 @@ class Entry:
         self.repeat_delay = repeat_delay
         self.repeat_interval = repeat_interval
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = 0
         self.alive = True

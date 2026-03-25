@@ -30,7 +30,7 @@ class Button:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 20, corner_radius: int = 25, layer=1000):
+                 command=None, alignment_spacing: int = 20, corner_radius: int = 25, layer=1000, data=None):
         self.bindings = {}
         if screen:
             screen.add_widget(self)
@@ -80,6 +80,7 @@ class Button:
         self.alignment_spacing = alignment_spacing
         self.corner_radius = corner_radius
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = 0
         self.alive = True

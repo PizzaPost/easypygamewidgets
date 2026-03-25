@@ -78,7 +78,7 @@ class Label:
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
-                 bottom_right_corner_radius: int = 25, layer=1000):
+                 bottom_right_corner_radius: int = 25, layer=1000, data=None):
         tmp = font.render(text, True, (255, 255, 255))
         if screen:
             screen.add_widget(self)
@@ -221,6 +221,7 @@ class Label:
         self.bottom_left_corner_radius = bottom_left_corner_radius
         self.bottom_right_corner_radius = bottom_right_corner_radius
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = 0
         self.alive = True

@@ -12,7 +12,7 @@ class Surface:
                  state: str = "enabled",
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000):
+                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000, data=None):
         self.surface = surface
         if screen:
             screen.add_widget(self)
@@ -37,6 +37,7 @@ class Surface:
                 self.cursors[name] = None
         self.dragable = dragable
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = 0
         self.alive = True

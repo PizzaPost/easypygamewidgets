@@ -57,7 +57,8 @@ class Slider:
                  alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
-                 show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000):
+                 show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000,
+                 data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -143,6 +144,7 @@ class Slider:
         self.show_full_rounding_of_whole_numbers = show_full_rounding_of_whole_numbers
         self.trigger_hold_delay = trigger_hold_delay
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = font.render(text, True, (255, 255, 255)).get_height()
         self.alive = True

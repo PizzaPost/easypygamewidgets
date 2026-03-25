@@ -37,7 +37,8 @@ class Timekeeper:
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
-                 type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000):
+                 type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000,
+                 data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -94,6 +95,7 @@ class Timekeeper:
         self.type_order = type_order
         self.reversed = reversed
         self.layer = layer
+        self.data = data
         self.x = 0
         self.y = 0
         self.alive = True
