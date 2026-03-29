@@ -58,6 +58,7 @@ class Slider:
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
                  show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None,
                  data=None):
         if screen:
             screen.add_widget(self)
@@ -144,6 +145,13 @@ class Slider:
         self.show_full_rounding_of_whole_numbers = show_full_rounding_of_whole_numbers
         self.trigger_hold_delay = trigger_hold_delay
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                                  active_unpressed_background_color=self.active_unpressed_used_background_color,
+                                  active_unpressed_border_color=self.active_unpressed_border_color)
         self.data = data
         self.x = 0
         self.y = font.render(text, True, (255, 255, 255)).get_height()
@@ -216,6 +224,19 @@ class Slider:
 
     def unbind_all(self):
         self.bindings.clear()
+        return self
+
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                              active_unpressed_background_color=self.active_unpressed_used_background_color,
+                              active_unpressed_border_color=self.active_unpressed_border_color)
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
         return self
 
 
@@ -291,12 +312,19 @@ def draw(slider, surface: pygame.Surface):
     if is_hovering and not getattr(slider, "is_hovered", False):
         slider.is_hovered = True
         slider.trigger_event("<MOUSE-IN>")
+        if slider.tooltip:
+            slider.tooltip.show()
     elif is_hovering and getattr(slider, "is_hovered", False):
         slider.is_hovered = True
         slider.trigger_event("<HOVER>")
     elif not is_hovering and getattr(slider, "is_hovered", False):
         slider.is_hovered = False
         slider.trigger_event("<MOUSE-OUT>")
+        if slider.tooltip:
+            slider.tooltip.hide()
+    if slider.tooltip.visible:
+        if not slider.pressed and not is_hovering:
+            slider.tooltip.hide()
 
     temp_surf = slider.font.render(slider.text, True, text_color)
     if slider.auto_size:

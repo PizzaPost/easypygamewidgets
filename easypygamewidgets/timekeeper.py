@@ -38,6 +38,7 @@ class Timekeeper:
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
                  type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None,
                  data=None):
         if screen:
             screen.add_widget(self)
@@ -95,6 +96,13 @@ class Timekeeper:
         self.type_order = type_order
         self.reversed = reversed
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                                  active_unpressed_background_color=self.active_unpressed_background_color,
+                                  active_unpressed_border_color=self.active_unpressed_border_color)
         self.data = data
         self.x = 0
         self.y = 0
@@ -226,6 +234,19 @@ class Timekeeper:
         self.bindings.clear()
         return self
 
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                              active_unpressed_background_color=self.active_unpressed_background_color,
+                              active_unpressed_border_color=self.active_unpressed_border_color)
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
+        return self
+
 
 def get_screen_offset(widget):
     if widget.screen:
@@ -295,12 +316,16 @@ def draw(timekeeper, surface: pygame.Surface):
     if is_hovering and not getattr(timekeeper, "is_hovered", False):
         timekeeper.is_hovered = True
         timekeeper.trigger_event("<MOUSE-IN>")
+        if timekeeper.tooltip:
+            timekeeper.tooltip.show()
     elif is_hovering and getattr(timekeeper, "is_hovered", False):
         timekeeper.is_hovered = True
         timekeeper.trigger_event("<HOVER>")
     elif not is_hovering and getattr(timekeeper, "is_hovered", False):
         timekeeper.is_hovered = False
         timekeeper.trigger_event("<MOUSE-OUT>")
+        if timekeeper.tooltip:
+            timekeeper.tooltip.hide()
 
     display_text = timekeeper.get_display_text()
     if timekeeper.auto_size:

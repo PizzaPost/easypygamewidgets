@@ -9,6 +9,7 @@ from .screen import Screen
 from .slider import Slider
 from .surface import Surface
 from .timekeeper import Timekeeper
+from .tooltip import Tooltip
 
 
 def flip(pygame_draw_function=None):
@@ -36,6 +37,8 @@ def flip(pygame_draw_function=None):
                 surface.draw(widget, misc.pg)
             elif isinstance(widget, Timekeeper):
                 timekeeper.draw(widget, misc.pg)
+            elif isinstance(widget, Tooltip):
+                tooltip.draw(widget, misc.pg)
     pygame.display.flip()
 
 

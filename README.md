@@ -120,6 +120,12 @@ A text display that can show a timer or stopwatch.
 
 [example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/timekeeper.py)
 
+### Tooltips
+
+A text display that is only shown when you hover over a widgets.
+
+[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/tooltip.py)
+
 ## Module Functions
 
 ### Core Functions

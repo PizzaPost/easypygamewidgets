@@ -78,7 +78,8 @@ class Label:
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
-                 bottom_right_corner_radius: int = 25, layer=1000, data=None):
+                 bottom_right_corner_radius: int = 25, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         tmp = font.render(text, True, (255, 255, 255))
         if screen:
             screen.add_widget(self)
@@ -221,6 +222,17 @@ class Label:
         self.bottom_left_corner_radius = bottom_left_corner_radius
         self.bottom_right_corner_radius = bottom_right_corner_radius
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                if not self.active_unpressed_background_color:
+                    bg_color = (50, 50, 50)
+                if not self.active_unpressed_border_color:
+                    bd_color = (100, 100, 100)
+                tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                                  active_unpressed_background_color=self.active_unpressed_background_color if self.active_unpressed_background_color else bg_color,
+                                  active_unpressed_border_color=self.active_unpressed_border_color if self.active_unpressed_border_color else bd_color)
         self.data = data
         self.x = 0
         self.y = 0
@@ -298,6 +310,23 @@ class Label:
 
     def unbind_all(self):
         self.bindings.clear()
+        return self
+
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            if not self.active_unpressed_background_color:
+                bg_color = (50, 50, 50)
+            if not self.active_unpressed_border_color:
+                bd_color = (100, 100, 100)
+            tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                              active_unpressed_background_color=self.active_unpressed_background_color if self.active_unpressed_background_color else bg_color,
+                              active_unpressed_border_color=self.active_unpressed_border_color if self.active_unpressed_border_color else bd_color)
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
         return self
 
 
@@ -415,12 +444,16 @@ def draw(label, surface: pygame.Surface):
     if is_hovering and not getattr(label, "is_hovered", False):
         label.is_hovered = True
         label.trigger_event("<MOUSE-IN>")
+        if label.tooltip:
+            label.tooltip.show()
     elif is_hovering and getattr(label, "is_hovered", False):
         label.is_hovered = True
         label.trigger_event("<HOVER>")
     elif not is_hovering and getattr(label, "is_hovered", False):
         label.is_hovered = False
         label.trigger_event("<MOUSE-OUT>")
+        if label.tooltip:
+            label.tooltip.hide()
 
     if label.auto_size:
         temp_surf = label.font.render(label.text, True, text_color)

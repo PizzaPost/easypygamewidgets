@@ -36,7 +36,8 @@ class Entry:
                  blinking_cursor: str = "|",
                  font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
-                 repeat_interval: int = 50, layer=1000, data=None):
+                 repeat_interval: int = 50, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -91,6 +92,13 @@ class Entry:
         self.repeat_delay = repeat_delay
         self.repeat_interval = repeat_interval
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                                  active_unpressed_background_color=self.active_unpressed_background_color,
+                                  active_unpressed_border_color=self.active_unpressed_border_color)
         self.data = data
         self.x = 0
         self.y = 0
@@ -240,6 +248,19 @@ class Entry:
         self.bindings.clear()
         return self
 
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                              active_unpressed_background_color=self.active_unpressed_background_color,
+                              active_unpressed_border_color=self.active_unpressed_border_color)
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
+        return self
+
 
 def process_key_action(entry, key, unicode_char):
     is_linux = sys.platform.startswith("linux")
@@ -373,12 +394,16 @@ def draw(entry, surface: pygame.Surface):
     if is_hovering and not getattr(entry, "is_hovered", False):
         entry.is_hovered = True
         entry.trigger_event("<MOUSE-IN>")
+        if entry.tooltip:
+            entry.tooltip.show()
     elif is_hovering and getattr(entry, "is_hovered", False):
         entry.is_hovered = True
         entry.trigger_event("<HOVER>")
     elif not is_hovering and getattr(entry, "is_hovered", False):
         entry.is_hovered = False
         entry.trigger_event("<MOUSE-OUT>")
+        if entry.tooltip:
+            entry.tooltip.hide()
 
     if entry.auto_size:
         text_w = entry.font.size(display_text)[0]

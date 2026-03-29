@@ -30,7 +30,8 @@ class Button:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 20, corner_radius: int = 25, layer=1000, data=None):
+                 command=None, alignment_spacing: int = 20, corner_radius: int = 20, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         self.bindings = {}
         if screen:
             screen.add_widget(self)
@@ -80,6 +81,13 @@ class Button:
         self.alignment_spacing = alignment_spacing
         self.corner_radius = corner_radius
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                                  active_unpressed_background_color=self.active_unpressed_background_color,
+                                  active_unpressed_border_color=self.active_unpressed_border_color)
         self.data = data
         self.x = 0
         self.y = 0
@@ -146,6 +154,19 @@ class Button:
         self.bindings.clear()
         return self
 
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
+                              active_unpressed_background_color=self.active_unpressed_background_color,
+                              active_unpressed_border_color=self.active_unpressed_border_color)
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
+        return self
+
 
 def get_screen_offset(widget):
     if widget.screen:
@@ -204,12 +225,16 @@ def draw(button, surface: pygame.Surface):
     if is_hovering and not getattr(button, "is_hovered", False):
         button.is_hovered = True
         button.trigger_event("<MOUSE-IN>")
+        if button.tooltip:
+            button.tooltip.show()
     elif is_hovering and getattr(button, "is_hovered", False):
         button.is_hovered = True
         button.trigger_event("<HOVER>")
     elif not is_hovering and getattr(button, "is_hovered", False):
         button.is_hovered = False
         button.trigger_event("<MOUSE-OUT>")
+        if button.tooltip:
+            button.tooltip.hide()
 
     if button.auto_size:
         temp_surf = button.font.render(button.text, True, text_color)

@@ -9,6 +9,7 @@ default_font_path = os.path.join(pack_font_path / "roboto mono" / "RobotoMono-Re
 default_emoji_font_path = os.path.join(pack_font_path / "emoji" / "NotoEmoji-Regular.ttf")
 
 default_font = pygame.font.Font(default_font_path, 26)
+tooltip_font = pygame.font.Font(default_font_path, 16)
 emoji_font = pygame.font.Font(default_emoji_font_path, 26)
 
 

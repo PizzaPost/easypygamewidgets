@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="easypygamewidgets",
-    version="26.4",
+    version="26.5",
     author="PizzaPost",
     author_email="pizzapost.mail@gmail.com",
     description="Create GUIs for pygame.",
@@ -55,7 +55,10 @@ setup(
             "assets/fonts/roboto mono/RobotoMono-Regular.ttf",
             "assets/fonts/roboto mono/OFL.txt",
             "assets/fonts/emoji/NotoEmoji-Regular.ttf",
-            "assets/fonts/emoji/OFL.txt"
+            "assets/fonts/emoji/OFL.txt",
+            "assets/tooltip/info.png",
+            "assets/tooltip/warning.png",
+            "assets/tooltip/blocked.png"
         ]
     }
 )

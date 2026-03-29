@@ -12,7 +12,8 @@ class Surface:
                  state: str = "enabled",
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000, data=None):
+                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         self.surface = surface
         if screen:
             screen.add_widget(self)
@@ -37,6 +38,13 @@ class Surface:
                 self.cursors[name] = None
         self.dragable = dragable
         self.layer = layer
+        self.tooltip = tooltip
+        if tooltip:
+            tooltip.configure(layer=self.layer + 1)
+            if not tooltip.style:
+                tooltip.configure(active_unpressed_text_color=(255, 255, 255),
+                                  active_unpressed_background_color=(50, 50, 50),
+                                  active_unpressed_border_color=(100, 100, 100))
         self.data = data
         self.x = 0
         self.y = 0
@@ -106,6 +114,19 @@ class Surface:
         self.bindings.clear()
         return self
 
+    def set_tooltip(self, tooltip):
+        self.tooltip = tooltip
+        tooltip.configure(layer=self.layer + 1)
+        if not tooltip.style:
+            tooltip.configure(active_unpressed_text_color=(255, 255, 255),
+                              active_unpressed_background_color=(50, 50, 50),
+                              active_unpressed_border_color=(100, 100, 100))
+        return self
+
+    def remove_tooltip(self):
+        self.tooltip = None
+        return self
+
 
 def get_screen_offset(widget):
     if widget.screen:
@@ -143,12 +164,16 @@ def draw(surface, window: pygame.Surface):
     if is_hovering and not getattr(surface, "is_hovered", False):
         surface.is_hovered = True
         surface.trigger_event("<MOUSE-IN>")
+        if surface.tooltip:
+            surface.tooltip.show()
     elif is_hovering and getattr(surface, "is_hovered", False):
         surface.is_hovered = True
         surface.trigger_event("<HOVER>")
     elif not is_hovering and getattr(surface, "is_hovered", False):
         surface.is_hovered = False
         surface.trigger_event("<MOUSE-OUT>")
+        if surface.tooltip:
+            surface.tooltip.hide()
 
     offset_x, offset_y = get_screen_offset(surface)
     draw_rect = surface.rect.move(offset_x, offset_y)
