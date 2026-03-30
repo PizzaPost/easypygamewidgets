@@ -9,7 +9,7 @@ pygame.init()
 
 class Surface:
     def __init__(self, surface: pygame.Surface, screen: "easypygamewidgets.Screen | None" = None,
-                 state: str = "enabled",
+                 state: str | None = None,
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000,
@@ -18,10 +18,15 @@ class Surface:
         if screen:
             screen.add_widget(self)
             self.screen = screen
+            if state:
+                self.state = state
         else:
             self.screen = None
             self.visible = True
-            self.state = state
+            if state:
+                self.state = state
+            else:
+                self.state = "enabled"
         cursor_input = {
             "active_hover": active_hover_cursor,
             "disabled_hover": disabled_hover_cursor,

@@ -11,7 +11,7 @@ class Slider:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 16,
                  text: str = "easypygamewidgets Slider", start: int | float = 0,
-                 end: int | float = 100, initial_value: int = None, state: str = "enabled",
+                 end: int | float = 100, initial_value: int = None, state: str | None = None,
                  top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25,
                  bottom_left_corner_radius: int = 25,
@@ -63,10 +63,15 @@ class Slider:
         if screen:
             screen.add_widget(self)
             self.screen = screen
+            if state:
+                self.state = state
         else:
             self.screen = None
             self.visible = True
-            self.state = state
+            if state:
+                self.state = state
+            else:
+                self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
         self.height = height

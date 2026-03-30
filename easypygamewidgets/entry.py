@@ -11,7 +11,7 @@ class Entry:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 80, placeholder_text: str = "easypygamewidgets Entry",
                  text: str = "", char_limit: int | None = None,
-                 show: str | None = None, state: str = "enabled",
+                 show: str | None = None, state: str | None = None,
                  active_unpressed_text_color: tuple = (255, 255, 255),
                  disabled_unpressed_text_color: tuple = (150, 150, 150),
                  active_hover_text_color: tuple = (255, 255, 255),
@@ -41,10 +41,15 @@ class Entry:
         if screen:
             screen.add_widget(self)
             self.screen = screen
+            if state:
+                self.state = state
         else:
             self.screen = None
             self.visible = True
-            self.state = state
+            if state:
+                self.state = state
+            else:
+                self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
         self.height = height

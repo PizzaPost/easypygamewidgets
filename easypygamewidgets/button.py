@@ -9,7 +9,7 @@ class Button:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 80,
                  text: str = "easypygamewidgets Button",
-                 state: str = "enabled",
+                 state: str | None = None,
                  active_unpressed_text_color: tuple = (255, 255, 255),
                  disabled_unpressed_text_color: tuple = (150, 150, 150),
                  active_hover_text_color: tuple = (255, 255, 255),
@@ -36,10 +36,15 @@ class Button:
         if screen:
             screen.add_widget(self)
             self.screen = screen
+            if state:
+                self.state = state
         else:
             self.screen = None
             self.visible = True
-            self.state = state
+            if state:
+                self.state = state
+            else:
+                self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
         self.height = height

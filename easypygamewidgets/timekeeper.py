@@ -15,7 +15,7 @@ class Timekeeper:
                  show_milliseconds: bool = False, show_seconds: bool = True,
                  show_minutes: bool = False, smart_minutes: bool = True, show_hours: bool = False,
                  smart_hours: bool = True,
-                 state: str = "enabled",
+                 state: str | None = None,
                  active_unpressed_text_color: tuple = (255, 255, 255),
                  disabled_unpressed_text_color: tuple = (150, 150, 150),
                  active_hover_text_color: tuple = (255, 255, 255),
@@ -43,10 +43,15 @@ class Timekeeper:
         if screen:
             screen.add_widget(self)
             self.screen = screen
+            if state:
+                self.state = state
         else:
             self.screen = None
             self.visible = True
-            self.state = state
+            if state:
+                self.state = state
+            else:
+                self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
         self.height = height
