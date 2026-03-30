@@ -236,7 +236,9 @@ class Slider:
         return self
 
     def remove_tooltip(self):
-        self.tooltip = None
+        if self.tooltip:
+            self.tooltip.visible = False
+            self.tooltip = None
         return self
 
 
@@ -322,9 +324,10 @@ def draw(slider, surface: pygame.Surface):
         slider.trigger_event("<MOUSE-OUT>")
         if slider.tooltip:
             slider.tooltip.hide()
-    if slider.tooltip.visible:
-        if not slider.pressed and not is_hovering:
-            slider.tooltip.hide()
+    if slider.tooltip:
+        if slider.tooltip.visible:
+            if not slider.pressed and not is_hovering:
+                slider.tooltip.hide()
 
     temp_surf = slider.font.render(slider.text, True, text_color)
     if slider.auto_size:

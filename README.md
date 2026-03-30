@@ -25,6 +25,7 @@ python3 -m pip install easypygamewidgets
 
 ```python
 import pygame
+
 import easypygamewidgets as epw
 
 pygame.init()
@@ -34,25 +35,26 @@ clock = pygame.time.Clock()
 # link the pygame window
 epw.link_pygame_window(window)
 
-# create a screen (optional)
-screen = epw.Screen()
-
 # create a button
-button = epw.Button(screen=screen, text="Click Me!", width=200, height=50)
-button.place(300, 250)
+button = epw.Button(text="Click Me!")
+button.place(300, 100)
 
 # create a slider
-slider = epw.Slider(screen=screen, text="Volume", start=0, end=100, width=300)
-slider.place(250, 350)
+slider = epw.Slider(text="Volume", start=0, end=100, auto_size=False, width=300)
+slider.place(300, 200)
 
 # create a text entry
-entry = epw.Entry(screen=screen, text="Type here...", width=250)
-entry.place(275, 450)
+entry = epw.Entry(placeholder_text="Type here...", auto_size=False, width=250)
+entry.place(300, 400)
+
+
+def draw():
+   window.fill((30, 30, 30))
+
 
 # main game loop
 running = True
 while running:
-    window.fill((30, 30, 30))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -64,7 +66,7 @@ while running:
     epw.handle_special_events()
 
     # draw all widgets
-    epw.flip()
+    epw.flip(draw)
 
     pygame.display.update()
     clock.tick(60)

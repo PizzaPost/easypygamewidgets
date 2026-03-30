@@ -258,7 +258,9 @@ class Entry:
         return self
 
     def remove_tooltip(self):
-        self.tooltip = None
+        if self.tooltip:
+            self.tooltip.visible = False
+            self.tooltip = None
         return self
 
 
