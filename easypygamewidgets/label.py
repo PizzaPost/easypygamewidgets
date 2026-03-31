@@ -79,8 +79,16 @@ class Label:
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, line_spacing: int = 8,
+                 data=None):
+        parts = text.split("\n")
+        parts_int = len(parts)
         tmp = font.render(text, True, (255, 255, 255))
+        longest_part = 0
+        for part in parts:
+            tmp2 = font.render(part, True, (255, 255, 255))
+            if tmp2.get_width() > longest_part:
+                longest_part = tmp2.get_width()
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -92,8 +100,8 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            self.width = tmp.get_width() + 40 + (alignment_spacing - 20)
-            self.height = tmp.get_height() + 20
+            self.width = longest_part + 40 + (alignment_spacing - 20)
+            self.height = tmp.get_height() * parts_int + line_spacing * (parts_int - 1) + 20
         else:
             self.width = width
             self.height = height
@@ -233,6 +241,7 @@ class Label:
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_background_color if self.active_unpressed_background_color else bg_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color if self.active_unpressed_border_color else bd_color)
+        self.line_spacing = line_spacing
         self.data = data
         self.x = 0
         self.y = 0
@@ -251,10 +260,17 @@ class Label:
         for key, value in kwargs.items():
             setattr(self, key, value)
         if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs or 'text' in kwargs:
+            parts = self.text.split("\n")
+            parts_int = len(parts)
             tmp = self.font.render(self.text, True, (255, 255, 255))
-            self.rect = pygame.Rect(self.x, self.y, tmp.get_width(), tmp.get_height())
-            self.width = self.rect.width + 40 + (self.alignment_spacing - 20)
-            self.height = self.rect.height + 20
+            longest_part = 0
+            for part in parts:
+                tmp2 = self.font.render(part, True, (255, 255, 255))
+                if tmp2.get_width() > longest_part:
+                    longest_part = tmp2.get_width()
+            self.width = longest_part + 40 + (self.alignment_spacing - 20)
+            self.height = tmp.get_height() * parts_int + self.line_spacing * (parts_int - 1) + 20
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -458,9 +474,16 @@ def draw(label, surface: pygame.Surface):
             label.tooltip.hide()
 
     if label.auto_size:
+        parts = label.text.split("\n")
+        parts_in = len(parts)
         temp_surf = label.font.render(label.text, True, text_color)
-        label.width = temp_surf.get_width() + 40 + (label.alignment_spacing - 20)
-        label.height = temp_surf.get_height() + 20
+        longest_part = 0
+        for part in parts:
+            tmp2 = label.font.render(part, True, (255, 255, 255))
+            if tmp2.get_width() > longest_part:
+                longest_part = tmp2.get_width()
+        label.width = longest_part + 40 + (label.alignment_spacing - 20)
+        label.height = temp_surf.get_height() * parts_in + label.line_spacing * (parts_in - 1) + 20
         label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
 
     offset_x, offset_y = get_screen_offset(label)
@@ -487,56 +510,58 @@ def draw(label, surface: pygame.Surface):
         surface.blit(shape_surf, draw_rect)
 
     def render_text_line(txt, color, rect_ref, offset=(0, 0)):
-        cx, cy = rect_ref.centerx + offset[0], rect_ref.centery + offset[1]
-        if label.alignment == "stretched" and len(txt) > 1 and not label.auto_size:
-            total_char_width = sum(label.font.render(char, True, color).get_width() for char in txt)
-            available_width = rect_ref.width - (label.alignment_spacing * 2)
-            if available_width > total_char_width:
-                spacing = (available_width - total_char_width) / (len(txt) - 1)
-                current_x = rect_ref.left + label.alignment_spacing + offset[0]
-                for char in txt:
-                    char_surf = label.font.render(char, True, color)
-                    char_surf.set_alpha(color[3])
-                    char_rect = char_surf.get_rect(midleft=(current_x, cy))
-                    surface.blit(char_surf, char_rect)
-                    current_x += char_surf.get_width() + spacing
-                return pygame.Rect(rect_ref.left + label.alignment_spacing + offset[0],
-                                   rect_ref.top + offset[1], available_width, rect_ref.height)
-            txt_surf = label.font.render(txt, True, color)
-            txt_rect = txt_surf.get_rect(center=(cx, cy))
-        else:
-            txt_surf = label.font.render(txt, True, color)
-            txt_rect = txt_surf.get_rect()
-            if label.alignment == "left":
-                txt_rect.midleft = (rect_ref.left + label.alignment_spacing + offset[0], cy)
-            elif label.alignment == "right":
-                txt_rect.midright = (rect_ref.right - label.alignment_spacing + offset[0], cy)
+        lines = txt.split("\n")
+        if not lines:
+            return
+        line_height = label.font.get_height()
+        total_text_height = len(lines) * line_height + label.line_spacing * (len(lines) - 1)
+        start_y = rect_ref.centery - (total_text_height / 2) + offset[1]
+        for i, line in enumerate(lines):
+            cx = rect_ref.centerx + offset[0]
+            cy = start_y + i * (line_height + label.line_spacing) + (line_height / 2)
+            if label.alignment == "stretched" and len(line) > 1 and not label.auto_size:
+                total_char_width = sum(label.font.render(char, True, color).get_width() for char in line)
+                available_width = rect_ref.width - (label.alignment_spacing * 2)
+                if available_width > total_char_width:
+                    spacing = (available_width - total_char_width) / (len(line) - 1)
+                    current_x = rect_ref.left + label.alignment_spacing + offset[0]
+                    for char in line:
+                        char_surf = label.font.render(char, True, color)
+                        char_surf.set_alpha(color[3])
+                        char_rect = char_surf.get_rect(midleft=(current_x, cy))
+                        surface.blit(char_surf, char_rect)
+                        current_x += char_surf.get_width() + spacing
+                    continue
+                txt_surf = label.font.render(line, True, color)
+                txt_rect = txt_surf.get_rect(center=(cx, cy))
             else:
-                txt_rect.center = (cx, cy)
-        txt_surf.set_alpha(color[3])
-        surface.blit(txt_surf, txt_rect)
-        return txt_rect
+                txt_surf = label.font.render(line, True, color)
+                txt_rect = txt_surf.get_rect()
+                if label.alignment == "left":
+                    txt_rect.midleft = (rect_ref.left + label.alignment_spacing + offset[0], cy)
+                elif label.alignment == "right":
+                    txt_rect.midright = (rect_ref.right - label.alignment_spacing + offset[0], cy)
+                else:
+                    txt_rect.center = (cx, cy)
+            txt_surf.set_alpha(color[3])
+            surface.blit(txt_surf, txt_rect)
+            if offset == (0, 0):
+                if label.underline and underline_color:
+                    shape_surf = pygame.Surface(txt_rect.size, pygame.SRCALPHA)
+                    shape_surf.set_alpha(underline_color[3])
+                    pygame.draw.line(shape_surf, underline_color, (0, txt_rect.height - 2),
+                                     (txt_rect.width, txt_rect.height - 2), 2)
+                    surface.blit(shape_surf, txt_rect)
+                if label.strikethrough and strikethrough_color:
+                    shape_surf = pygame.Surface(txt_rect.size, pygame.SRCALPHA)
+                    shape_surf.set_alpha(strikethrough_color[3])
+                    pygame.draw.line(shape_surf, strikethrough_color, (0, txt_rect.height // 2),
+                                     (txt_rect.width, txt_rect.height // 2), 2)
+                    surface.blit(shape_surf, txt_rect)
 
     if shadow_color and shadow_color[3] > 0:
         render_text_line(label.text, shadow_color, draw_rect, offset=(2, 2))
-    final_text_rect = render_text_line(label.text, text_color, draw_rect)
-    if final_text_rect:
-        if underline_color and label.underline:
-            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
-            shape_surf_rect = shape_surf.get_rect()
-            start_pos = (shape_surf_rect.left, shape_surf_rect.bottom - 2)
-            end_pos = (shape_surf_rect.right, shape_surf_rect.bottom - 2)
-            shape_surf.set_alpha(underline_color[3])
-            pygame.draw.line(shape_surf, underline_color, start_pos, end_pos, 2)
-            surface.blit(shape_surf, final_text_rect)
-        if strikethrough_color and label.strikethrough:
-            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
-            shape_surf_rect = shape_surf.get_rect()
-            start_pos = (shape_surf_rect.left, shape_surf_rect.centery)
-            end_pos = (shape_surf_rect.right, shape_surf_rect.centery)
-            shape_surf.set_alpha(strikethrough_color[3])
-            pygame.draw.line(shape_surf, strikethrough_color, start_pos, end_pos, 2)
-            surface.blit(shape_surf, final_text_rect)
+    render_text_line(label.text, text_color, draw_rect)
 
 
 def is_point_in_rounded_rect(label, point):
