@@ -30,7 +30,7 @@ class Button:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 20, corner_radius: int = 20, layer=1000,
+                 command=None, alignment_spacing: int = 20, corner_radius: int = 20, layer=1000, line_spacing: int = 30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         self.bindings = {}
         if screen:
@@ -93,6 +93,7 @@ class Button:
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
+        self.line_spacing = line_spacing
         self.data = data
         self.x = 0
         self.y = 0
@@ -100,6 +101,8 @@ class Button:
         self.pressed = False
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
+
+        self.font.set_linesize(line_spacing)
 
         misc.add_widget(self)
 
@@ -114,6 +117,8 @@ class Button:
             self.bind("<RELEASE>", kwargs['command'])
         if 'layer' in kwargs:
             misc.resort_layers()
+        if 'line_spacing' in kwargs:
+            self.font.set_linesize(self.line_spacing)
         return self
 
     def config(self, **kwargs):

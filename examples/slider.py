@@ -18,17 +18,18 @@ def change_speed():
 
 slider = epw.Slider(text="Speed", start=0, end=2, initial_value=speed, round_display_value=2)
 slider.bind("<PRESS>", change_speed)
-slider.bind("<DRAG>", change_speed)
+slider.bind("<DRAG>", change_speed, False)
 # slider.set(speed)
 slider.place(50, 50)
 
 
 def draw():
     global x_pos, speed
+    change_speed()
     window.fill((30, 30, 30))
     if x_pos > 380:
-        pygame.draw.circle(window, (255, 255, 255), (x_pos - 400, 250), 20)
-    pygame.draw.circle(window, (255, 255, 255), (x_pos, 250), 20)
+        pygame.draw.aacircle(window, (255, 255, 255), (x_pos - 400, 250), 20)
+    pygame.draw.aacircle(window, (255, 255, 255), (x_pos, 250), 20)
     x_pos += speed
     if x_pos > 420:
         x_pos = 20

@@ -8,7 +8,7 @@ clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 
 label1 = epw.Label(text="Hello World").place(0, 10)
-label2 = epw.Label(text="You can drag me!", dragable=True).place(0, 40)
+label2 = epw.Label(text="You can\ndrag me!", dragable=True).place(0, 75)
 
 
 def draw():

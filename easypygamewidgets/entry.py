@@ -36,7 +36,7 @@ class Entry:
                  blinking_cursor: str = "|",
                  font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
-                 repeat_interval: int = 50, layer=1000,
+                 repeat_interval: int = 50, layer=1000, line_spacing: int = 30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         if screen:
             screen.add_widget(self)
@@ -97,6 +97,7 @@ class Entry:
         self.repeat_delay = repeat_delay
         self.repeat_interval = repeat_interval
         self.layer = layer
+        self.line_spacing = line_spacing
         self.tooltip = tooltip
         if tooltip:
             tooltip.configure(layer=self.layer + 1)
@@ -127,6 +128,8 @@ class Entry:
         self.last_blink_time = pygame.time.get_ticks()
         self.bindings = {}
 
+        self.font.set_linesize(line_spacing)
+
         misc.add_widget(self)
 
     def configure(self, **kwargs):
@@ -138,6 +141,8 @@ class Entry:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
             misc.resort_layers()
+        if 'line_spacing' in kwargs:
+            self.font.set_linesize(self.line_spacing)
         return self
 
     def config(self, **kwargs):
@@ -411,12 +416,16 @@ def draw(entry, surface: pygame.Surface):
         entry.trigger_event("<MOUSE-OUT>")
         if entry.tooltip:
             entry.tooltip.hide()
-
+    entry.font.set_linesize(entry.line_spacing)
     if entry.auto_size:
-        text_w = entry.font.size(display_text)[0]
+        text_w, text_h = entry.font.size(display_text)
+        actual_height = max(text_h, entry.line_spacing)
         required_width = max(entry.width, text_w + (entry.alignment_spacing * 2) + 10)
+        required_height = max(entry.height, actual_height + (entry.alignment_spacing * 2) + 10)
         if entry.rect.width != required_width:
             entry.rect.width = required_width
+        if entry.rect.height != required_height:
+            entry.rect.height = required_height
     draw_rect = entry.rect.move(offset_x, offset_y)
     pygame.draw.rect(surface, bg_color, draw_rect, border_radius=entry.corner_radius)
     if entry.border_thickness > 0:

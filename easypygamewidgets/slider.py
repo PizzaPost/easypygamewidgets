@@ -58,7 +58,7 @@ class Slider:
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
                  show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, line_spacing: int = 30,
                  data=None):
         if screen:
             screen.add_widget(self)
@@ -157,6 +157,7 @@ class Slider:
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_used_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
+        self.line_spacing = line_spacing
         self.data = data
         self.x = 0
         self.y = font.render(text, True, (255, 255, 255)).get_height()
@@ -169,6 +170,8 @@ class Slider:
         self.last_value_update_time = 0
         self.bindings = {}
 
+        self.font.set_linesize(line_spacing)
+
         misc.add_widget(self)
 
     def configure(self, **kwargs):
@@ -180,6 +183,8 @@ class Slider:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
             misc.resort_layers()
+        if 'line_spacing' in kwargs:
+            self.font.set_linesize(self.line_spacing)
         return self
 
     def config(self, **kwargs):
@@ -375,7 +380,7 @@ def draw(slider, surface: pygame.Surface):
                          border_bottom_right_radius=br)
     dot_x = track_rect.x + used_width
     dot_x = max(track_rect.left + slider.dot_radius, min(dot_x, track_rect.right - slider.dot_radius))
-    pygame.draw.circle(surface, dot_color, (int(dot_x), int(track_rect.centery)),
+    pygame.draw.aacircle(surface, dot_color, (int(dot_x), int(track_rect.centery)),
                        slider.dot_radius + slider.extra_dot_radius)
     if (slider.state == "enabled" or slider.show_value_when_disabled) and (
             slider.show_value_when_pressed and slider.pressed or slider.show_value_when_hovered and is_hovering and not slider.pressed or slider.show_value_when_unpressed):

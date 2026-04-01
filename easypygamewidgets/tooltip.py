@@ -22,6 +22,7 @@ class Tooltip:
                  font: pygame.font.Font = font.tooltip_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 25, layer=1000, style: str | None = None,
                  suppress_icon=False, icon: "pygame.Surface | easypygamewidgets.Surface | None" = None,
+                 line_spacing: int = 30,
                  data=None):
         self.bindings = {}
         self.style = style
@@ -87,6 +88,7 @@ class Tooltip:
         self.suppress_icon = suppress_icon
         if icon:
             self.icon = icon
+        self.line_spacing = line_spacing
         self.data = data
         self.x = 0
         self.y = 0
@@ -94,6 +96,8 @@ class Tooltip:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
         self.visible = False
+
+        self.font.set_linesize(line_spacing)
 
         misc.add_widget(self)
 
@@ -106,6 +110,8 @@ class Tooltip:
             kwargs["widget"].set_tooltip(self)
         if 'layer' in kwargs:
             misc.resort_layers()
+        if 'line_spacing' in kwargs:
+            self.font.set_linesize(self.line_spacing)
         return self
 
     def config(self, **kwargs):
@@ -155,6 +161,7 @@ class Tooltip:
 def draw(tooltip, surface: pygame.Surface):
     if not tooltip.visible:
         return
+    tooltip.font.set_linesize(tooltip.line_spacing)
     mouse_pos = pygame.mouse.get_pos()
     is_hovering = is_point_in_rounded_rect(tooltip, mouse_pos)
     text_color = tooltip.active_unpressed_text_color
