@@ -335,11 +335,6 @@ def draw(timekeeper, surface: pygame.Surface):
             timekeeper.tooltip.hide()
 
     display_text = timekeeper.get_display_text()
-    if timekeeper.auto_size:
-        text_w = timekeeper.font.size(display_text)[0]
-        exact_w = text_w + (timekeeper.alignment_spacing * 2)
-        timekeeper.rect.width = (exact_w + 39) // 40 * 40
-        timekeeper.rect.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
     draw_rect = timekeeper.rect.move(offset_x, offset_y)
     pygame.draw.rect(surface, bg_color, draw_rect, border_radius=timekeeper.corner_radius)
     if timekeeper.border_thickness > 0:
@@ -393,6 +388,13 @@ def is_point_in_rounded_rect(timekeeper, point):
 
 
 def react(timekeeper, event=None):
+    display_text = timekeeper.get_display_text()
+    if timekeeper.auto_size:
+        text_w = timekeeper.font.size(display_text)[0]
+        exact_w = text_w + (timekeeper.alignment_spacing * 2)
+        timekeeper.width = (exact_w + 39) // 40 * 40
+        timekeeper.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
+        timekeeper.rect = pygame.Rect(timekeeper.x, timekeeper.y, timekeeper.width, timekeeper.height)
     if timekeeper.state != "enabled" or not timekeeper.visible:
         return
     is_inside = is_point_in_rounded_rect(timekeeper, pygame.mouse.get_pos())
