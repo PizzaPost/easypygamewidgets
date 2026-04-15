@@ -280,7 +280,7 @@ def split_to_values(widget, total_seconds):
     widget.minutes = int((abs_secs % 3600) // 60)
     widget.seconds = int(abs_secs % 60)
     widget.milliseconds = abs(total_seconds) - int(abs(abs_secs))
-    widget.update_size()
+    update_size(widget)
 
 
 def draw(timekeeper, surface: pygame.Surface):
