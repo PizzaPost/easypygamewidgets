@@ -61,6 +61,16 @@ class Surface:
         self.is_dragging = False
         self.last_checked_dragging = None
         self.bindings = {}
+        self.original_surface = surface
+        self.target_scale = 1
+        self.current_scale = 1
+        self.scale_step = 0
+        self.target_rotation = 0
+        self.current_rotation = 0
+        self.rotation_step = 0
+        self.target_offset = (0, 0)
+        self.current_offset = [0, 0]
+        self.offset_step = [0, 0]
 
         misc.add_widget(self)
 
@@ -99,7 +109,9 @@ class Surface:
             command = binding_data["command"]
             require_hover = binding_data["require_hover"]
             offset_x, offset_y = get_screen_offset(self)
-            if not require_hover or self.rect.move(offset_x, offset_y).collidepoint(pygame.mouse.get_pos()):
+            total_offset_x = offset_x + round(self.current_offset[0])
+            total_offset_y = offset_y + round(self.current_offset[1])
+            if not require_hover or self.rect.move(total_offset_x, total_offset_y).collidepoint(pygame.mouse.get_pos()):
                 command(*args, **kwargs)
 
     def set_screen(self, screen):
@@ -134,6 +146,65 @@ class Surface:
             self.tooltip = None
         return self
 
+    def scale(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_scale = 1
+        else:
+            self.target_scale = value
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        return self
+
+    def rotate(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_rotation = 0
+        else:
+            self.target_rotation = value
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        return self
+
+    def offset(self, value: tuple[int, int], frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_offset = (0, 0)
+        else:
+            self.target_offset = value
+        self.offset_step[0] = (self.target_offset[0] - self.current_offset[0]) / frames_to_finish
+        self.offset_step[1] = (self.target_offset[1] - self.current_offset[1]) / frames_to_finish
+        return self
+
+
+def update_animation(surface):
+    if surface.current_scale != surface.target_scale:
+        if abs(surface.current_scale - surface.target_scale) <= abs(surface.scale_step):
+            surface.current_scale = surface.target_scale
+        else:
+            surface.current_scale += surface.scale_step
+    if surface.current_rotation != surface.target_rotation:
+        if abs(surface.current_rotation - surface.target_rotation) <= abs(surface.rotation_step):
+            surface.current_rotation = surface.target_rotation
+        else:
+            surface.current_rotation += surface.rotation_step
+    for x in range(2):
+        if surface.current_offset[x] != surface.target_offset[x]:
+            if abs(surface.current_offset[x] - surface.target_offset[x]) <= abs(surface.offset_step[x]):
+                surface.current_offset[x] = float(surface.target_offset[x])
+            else:
+                surface.current_offset[x] += surface.offset_step[x]
+    if surface.current_scale != 1 or surface.current_rotation != 0:
+        new_width = int(surface.original_surface.get_width() * surface.current_scale)
+        new_height = int(surface.original_surface.get_height() * surface.current_scale)
+        if new_width > 0 and new_height > 0:
+            scaled_surface = pygame.transform.smoothscale(surface.original_surface, (new_width, new_height))
+            surface.surface = pygame.transform.rotate(scaled_surface, surface.current_rotation)
+            old_center = surface.rect.center
+            surface.rect = surface.surface.get_rect()
+            surface.rect.center = old_center
+
 
 def get_screen_offset(widget):
     if widget.screen:
@@ -146,7 +217,9 @@ def draw(surface, window: pygame.Surface):
         return
     mouse_pos = pygame.mouse.get_pos()
     offset_x, offset_y = get_screen_offset(surface)
-    interaction_rect = surface.rect.move(offset_x, offset_y)
+    total_offset_x = offset_x + round(surface.current_offset[0])
+    total_offset_y = offset_y + round(surface.current_offset[1])
+    interaction_rect = surface.rect.move(total_offset_x, total_offset_y)
     is_hovering = interaction_rect.collidepoint(mouse_pos)
     if is_hovering:
         if surface.state == "enabled":
@@ -183,7 +256,9 @@ def draw(surface, window: pygame.Surface):
             surface.tooltip.hide()
 
     offset_x, offset_y = get_screen_offset(surface)
-    draw_rect = surface.rect.move(offset_x, offset_y)
+    total_offset_x = offset_x + round(surface.current_offset[0])
+    total_offset_y = offset_y + round(surface.current_offset[1])
+    draw_rect = surface.rect.move(total_offset_x, total_offset_y)
     window.blit(surface.surface, draw_rect)
 
 
@@ -193,7 +268,9 @@ def react(surface, event=None):
         return
     mouse_pos = pygame.mouse.get_pos()
     offset_x, offset_y = get_screen_offset(surface)
-    interaction_rect = surface.rect.move(offset_x, offset_y)
+    total_offset_x = offset_x + round(surface.current_offset[0])
+    total_offset_y = offset_y + round(surface.current_offset[1])
+    interaction_rect = surface.rect.move(total_offset_x, total_offset_y)
     is_inside = interaction_rect.collidepoint(mouse_pos)
     current_time = time.time()
     if not event:
@@ -213,8 +290,8 @@ def react(surface, event=None):
                     surface.is_dragging = True
                     surface.last_checked_dragging = current_time
                     if surface.drag_offset:
-                        new_x = mouse_pos[0] - surface.drag_offset[0] - offset_x
-                        new_y = mouse_pos[1] - surface.drag_offset[1] - offset_y
+                        new_x = mouse_pos[0] - surface.drag_offset[0] - total_offset_x
+                        new_y = mouse_pos[1] - surface.drag_offset[1] - total_offset_y
                         surface.place(new_x, new_y)
         if event.type == pygame.KEYDOWN:
             surface.trigger_event("<KEY>")
@@ -225,7 +302,8 @@ def react(surface, event=None):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and is_inside:
                 surface.pressed = True
-                surface.drag_offset = (mouse_pos[0] - (surface.x + offset_x), mouse_pos[1] - (surface.y + offset_y))
+                surface.drag_offset = (mouse_pos[0] - (surface.x + total_offset_x),
+                                       mouse_pos[1] - (surface.y + total_offset_y))
                 surface.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and is_inside and surface.pressed:
