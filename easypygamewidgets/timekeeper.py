@@ -126,7 +126,8 @@ class Timekeeper:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
+        update_size(self)
+        if any(k in kwargs for k in ('x', 'y', 'width', 'height')):
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -255,6 +256,16 @@ class Timekeeper:
         return self
 
 
+def update_size(timekeeper):
+    if timekeeper.auto_size:
+        display_text = timekeeper.get_display_text()
+        text_w = timekeeper.font.size(display_text)[0]
+        extra_w = text_w + (timekeeper.alignment_spacing * 2)
+        timekeeper.width = (extra_w + 39) // 40 * 40
+        timekeeper.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
+        timekeeper.rect = pygame.Rect(timekeeper.x, timekeeper.y, timekeeper.width, timekeeper.height)
+
+
 def get_screen_offset(widget):
     if widget.screen:
         return widget.screen.x, widget.screen.y
@@ -269,6 +280,7 @@ def split_to_values(widget, total_seconds):
     widget.minutes = int((abs_secs % 3600) // 60)
     widget.seconds = int(abs_secs % 60)
     widget.milliseconds = abs(total_seconds) - int(abs(abs_secs))
+    widget.update_size()
 
 
 def draw(timekeeper, surface: pygame.Surface):
@@ -388,13 +400,6 @@ def is_point_in_rounded_rect(timekeeper, point):
 
 
 def react(timekeeper, event=None):
-    display_text = timekeeper.get_display_text()
-    if timekeeper.auto_size:
-        text_w = timekeeper.font.size(display_text)[0]
-        exact_w = text_w + (timekeeper.alignment_spacing * 2)
-        timekeeper.width = (exact_w + 39) // 40 * 40
-        timekeeper.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
-        timekeeper.rect = pygame.Rect(timekeeper.x, timekeeper.y, timekeeper.width, timekeeper.height)
     if timekeeper.state != "enabled" or not timekeeper.visible:
         return
     is_inside = is_point_in_rounded_rect(timekeeper, pygame.mouse.get_pos())

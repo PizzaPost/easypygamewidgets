@@ -15,7 +15,7 @@ def check_update():
         response.raise_for_status()
         data = response.json()
         latest_version = data["version"]
-        if latest_version != "26.11":
+        if latest_version != "26.12":
             print("An update is available. Download it now with 'pip install --upgrade easypygamewidgets'")
     except Exception as e:
         print(f"easypygamewidgets: Failed to check for updates: {e}")

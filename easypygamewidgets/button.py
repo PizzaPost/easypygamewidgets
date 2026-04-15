@@ -46,8 +46,14 @@ class Button:
             else:
                 self.state = "enabled"
         self.auto_size = auto_size
-        self.width = width
-        self.height = height
+        if self.auto_size:
+            font.set_linesize(line_spacing)
+            text_w, text_h = font.size(text)
+            self.width = text_w + 40 + (alignment_spacing - 20)
+            self.height = text_h + 20
+        else:
+            self.width = width
+            self.height = height
         self.text = text
         self.active_unpressed_text_color = active_unpressed_text_color
         self.disabled_unpressed_text_color = disabled_unpressed_text_color
@@ -109,7 +115,7 @@ class Button:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
+        if any(k in kwargs for k in ('x', 'y', 'width', 'height', 'text', 'font')):
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -247,12 +253,6 @@ def draw(button, surface: pygame.Surface):
         button.trigger_event("<MOUSE-OUT>")
         if button.tooltip:
             button.tooltip.hide()
-
-    if button.auto_size:
-        temp_surf = button.font.render(button.text, True, text_color)
-        button.width = temp_surf.get_width() + 40 + (button.alignment_spacing - 20)
-        button.height = temp_surf.get_height() + 20
-        button.rect = pygame.Rect(button.x, button.y, button.width, button.height)
 
     offset_x, offset_y = get_screen_offset(button)
     draw_rect = button.rect.move(offset_x, offset_y)
