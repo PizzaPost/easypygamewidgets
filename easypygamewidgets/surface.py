@@ -77,6 +77,8 @@ class Surface:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+        if 'surface' in kwargs:
+            self.original_surface = kwargs["surface"]
         if 'x' in kwargs or 'y' in kwargs or 'surface' in kwargs:
             self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
         if 'screen' in kwargs:

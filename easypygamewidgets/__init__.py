@@ -34,8 +34,8 @@ def flip(pygame_draw_function=None):
             elif isinstance(widget, Label):
                 label.draw(widget, misc.pg)
             elif isinstance(widget, Surface):
-                surface.draw(widget, misc.pg)
                 surface.update_animation(widget)
+                surface.draw(widget, misc.pg)
             elif isinstance(widget, Timekeeper):
                 timekeeper.draw(widget, misc.pg)
             elif isinstance(widget, Tooltip):

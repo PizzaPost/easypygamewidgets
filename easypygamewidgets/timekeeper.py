@@ -195,18 +195,22 @@ class Timekeeper:
 
     def stop(self):
         self.ticking = False
+        self.last_updated = None
         return self
 
     def resume(self):
         self.ticking = True
+        self.last_updated = None
         return self
 
     def start(self):
         self.ticking = True
+        self.last_updated = None
         return self
 
     def reset(self):
         split_to_values(self, self.start_at)
+        self.last_updated = None
         return self
 
     def add(self, amount):
@@ -428,9 +432,9 @@ def react(timekeeper, event=None):
             next_value = curr + change
             if timekeeper.end_at is not None:
                 reached_limit = False
-                if not timekeeper.reversed and next_value >= timekeeper.end_at and not timekeeper.start_at > timekeeper.end_at:
+                if not timekeeper.reversed and next_value >= timekeeper.end_at:
                     reached_limit = True
-                elif timekeeper.reversed and next_value <= timekeeper.end_at and not timekeeper.start_at < timekeeper.end_at:
+                elif timekeeper.reversed and next_value <= timekeeper.end_at:
                     reached_limit = True
                 if reached_limit:
                     split_to_values(timekeeper, timekeeper.end_at)
