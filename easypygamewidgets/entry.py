@@ -127,6 +127,7 @@ class Entry:
         self.cursor_visible = True
         self.last_blink_time = pygame.time.get_ticks()
         self.bindings = {}
+        self.scheduled_functions = []
 
         self.font.set_linesize(line_spacing)
 
@@ -271,6 +272,12 @@ class Entry:
         if self.tooltip:
             self.tooltip.visible = False
             self.tooltip = None
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -515,6 +522,11 @@ def is_point_in_rounded_rect(entry, point):
 
 
 def react(entry, event=None):
+    for func in entry.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            entry.scheduled_functions.remove(func)
     if entry.state != "enabled" or not entry.visible:
         return
     display_text = entry.get_display_text()

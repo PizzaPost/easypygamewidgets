@@ -118,6 +118,7 @@ class Timekeeper:
         self.last_updated = None
         self.is_negative = False
         self.bindings = {}
+        self.scheduled_functions = []
 
         split_to_values(self, start_at)
 
@@ -257,6 +258,12 @@ class Timekeeper:
         if self.tooltip:
             self.tooltip.visible = False
             self.tooltip = None
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -404,6 +411,11 @@ def is_point_in_rounded_rect(timekeeper, point):
 
 
 def react(timekeeper, event=None):
+    for func in timekeeper.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            timekeeper.scheduled_functions.remove(func)
     if timekeeper.state != "enabled" or not timekeeper.visible:
         return
     is_inside = is_point_in_rounded_rect(timekeeper, pygame.mouse.get_pos())

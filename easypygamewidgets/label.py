@@ -246,6 +246,7 @@ class Label:
         self.is_dragging = False
         self.last_checked_dragging = None
         self.bindings = {}
+        self.scheduled_functions = []
 
         misc.add_widget(self)
 
@@ -332,6 +333,12 @@ class Label:
         if self.tooltip:
             self.tooltip.visible = False
             self.tooltip = None
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -568,6 +575,11 @@ def is_point_in_rounded_rect(label, point):
 
 
 def react(label, event=None):
+    for func in label.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            label.scheduled_functions.remove(func)
     if label.state != "enabled" or not label.visible:
         label.pressed = False
         return

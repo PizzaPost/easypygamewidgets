@@ -71,6 +71,8 @@ class Surface:
         self.target_offset = (0, 0)
         self.current_offset = [0, 0]
         self.offset_step = [0, 0]
+        self.use_rotozoom = False
+        self.scheduled_functions = []
 
         misc.add_widget(self)
 
@@ -168,6 +170,16 @@ class Surface:
         self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
         return self
 
+    def rotozoom(self, scale=None, rotation=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        self.target_scale = 1 if scale is None else scale
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        self.target_rotation = 0 if rotation is None else rotation
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        self.use_rotozoom = True
+        return self
+
     def offset(self, value: tuple[int, int], frames_to_finish=1):
         if frames_to_finish <= 0:
             frames_to_finish = 1
@@ -177,6 +189,12 @@ class Surface:
             self.target_offset = value
         self.offset_step[0] = (self.target_offset[0] - self.current_offset[0]) / frames_to_finish
         self.offset_step[1] = (self.target_offset[1] - self.current_offset[1]) / frames_to_finish
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -201,8 +219,12 @@ def update_animation(surface):
         new_width = int(surface.original_surface.get_width() * surface.current_scale)
         new_height = int(surface.original_surface.get_height() * surface.current_scale)
         if new_width > 0 and new_height > 0:
-            scaled_surface = pygame.transform.smoothscale(surface.original_surface, (new_width, new_height))
-            surface.surface = pygame.transform.rotate(scaled_surface, surface.current_rotation)
+            if surface.use_rotozoom:
+                surface.surface = pygame.transform.rotozoom(surface.original_surface, surface.current_rotation,
+                                                            surface.current_scale)
+            else:
+                scaled_surface = pygame.transform.smoothscale(surface.original_surface, (new_width, new_height))
+                surface.surface = pygame.transform.rotate(scaled_surface, surface.current_rotation)
             old_center = surface.rect.center
             surface.rect = surface.surface.get_rect()
             surface.rect.center = old_center
@@ -265,6 +287,11 @@ def draw(surface, window: pygame.Surface):
 
 
 def react(surface, event=None):
+    for func in surface.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            surface.scheduled_functions.remove(func)
     if surface.state != "enabled" or not surface.visible:
         surface.pressed = False
         return

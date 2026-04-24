@@ -96,6 +96,7 @@ class Tooltip:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
         self.visible = False
+        self.scheduled_functions = []
 
         self.font.set_linesize(line_spacing)
 
@@ -155,6 +156,12 @@ class Tooltip:
 
     def remove_widget(self, widget):
         widget.set_tooltip(None)
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -255,3 +262,11 @@ def is_point_in_rounded_rect(tooltip, point):
     for cx, cy in centers:
         if ((x - cx) ** 2 + (y - cy) ** 2) <= r ** 2: return True
     return False
+
+
+def react(tooltip, event=None):
+    for func in tooltip.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            tooltip.scheduled_functions.remove(func)

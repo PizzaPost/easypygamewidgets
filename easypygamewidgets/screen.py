@@ -18,6 +18,7 @@ class Screen:
         self.y = y
         self.layer = layer
         self.data = data
+        self.scheduled_functions = []
 
         misc.add_widget(self)
 
@@ -75,6 +76,12 @@ class Screen:
         self.y = y
         return self
 
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
+        return self
+
 
 def draw(screen, surface: pygame.Surface):
     if screen.darken_background_with_alpha:
@@ -82,3 +89,11 @@ def draw(screen, surface: pygame.Surface):
         background_surf.fill((0, 0, 0))
         background_surf.set_alpha(screen.darken_background_with_alpha)
         surface.blit(background_surf, (0, 0))
+
+
+def react(screen, event=None):
+    for func in screen.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            screen.scheduled_functions.remove(func)

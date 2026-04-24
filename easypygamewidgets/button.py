@@ -107,6 +107,7 @@ class Button:
         self.pressed = False
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
+        self.scheduled_functions = []
 
         self.font.set_linesize(line_spacing)
 
@@ -183,6 +184,12 @@ class Button:
         if self.tooltip:
             self.tooltip.visible = False
             self.tooltip = None
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -304,6 +311,11 @@ def is_point_in_rounded_rect(button, point):
 
 
 def react(button, event=None):
+    for func in button.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            button.scheduled_functions.remove(func)
     if button.state != "enabled" or not button.visible:
         button.pressed = False
         return

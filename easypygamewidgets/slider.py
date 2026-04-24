@@ -169,6 +169,7 @@ class Slider:
         self.pressed_before = False
         self.last_value_update_time = 0
         self.bindings = {}
+        self.scheduled_functions = []
 
         self.font.set_linesize(line_spacing)
 
@@ -249,6 +250,12 @@ class Slider:
         if self.tooltip:
             self.tooltip.visible = False
             self.tooltip = None
+        return self
+
+    def schedule(self, function, frames_to_execute):
+        if frames_to_execute < 1:
+            frames_to_execute = 1
+        self.scheduled_functions.append([function, frames_to_execute])
         return self
 
 
@@ -381,7 +388,7 @@ def draw(slider, surface: pygame.Surface):
     dot_x = track_rect.x + used_width
     dot_x = max(track_rect.left + slider.dot_radius, min(dot_x, track_rect.right - slider.dot_radius))
     pygame.draw.aacircle(surface, dot_color, (int(dot_x), int(track_rect.centery)),
-                       slider.dot_radius + slider.extra_dot_radius)
+                         slider.dot_radius + slider.extra_dot_radius)
     if (slider.state == "enabled" or slider.show_value_when_disabled) and (
             slider.show_value_when_pressed and slider.pressed or slider.show_value_when_hovered and is_hovering and not slider.pressed or slider.show_value_when_unpressed):
         if slider.show_full_rounding_of_whole_numbers:
@@ -462,6 +469,11 @@ def is_point_in_rounded_rect(slider, point):
 
 
 def react(slider, event=None):
+    for func in slider.scheduled_functions:
+        func[1] -= 1
+        if func[1] <= 0:
+            func[0]()
+            slider.scheduled_functions.remove(func)
     if slider.state != "enabled" or not slider.visible:
         return
     mouse_pos = pygame.mouse.get_pos()
