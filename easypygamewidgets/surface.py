@@ -279,9 +279,6 @@ def draw(surface, window: pygame.Surface):
         if surface.tooltip:
             surface.tooltip.hide()
 
-    offset_x, offset_y = get_screen_offset(surface)
-    total_offset_x = offset_x + round(surface.current_offset[0])
-    total_offset_y = offset_y + round(surface.current_offset[1])
     draw_rect = surface.rect.move(total_offset_x, total_offset_y)
     window.blit(surface.surface, draw_rect)
 

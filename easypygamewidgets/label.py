@@ -246,6 +246,9 @@ class Label:
         self.is_dragging = False
         self.last_checked_dragging = None
         self.bindings = {}
+        self.target_offset = (0, 0)
+        self.current_offset = [0, 0]
+        self.offset_step = [0, 0]
         self.scheduled_functions = []
 
         misc.add_widget(self)
@@ -335,11 +338,31 @@ class Label:
             self.tooltip = None
         return self
 
+    def offset(self, value: tuple[int, int], frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_offset = (0, 0)
+        else:
+            self.target_offset = value
+        self.offset_step[0] = (self.target_offset[0] - self.current_offset[0]) / frames_to_finish
+        self.offset_step[1] = (self.target_offset[1] - self.current_offset[1]) / frames_to_finish
+        return self
+
     def schedule(self, function, frames_to_execute):
         if frames_to_execute < 1:
             frames_to_execute = 1
         self.scheduled_functions.append([function, frames_to_execute])
         return self
+
+
+def update_animation(label):
+    for x in range(2):
+        if label.current_offset[x] != label.target_offset[x]:
+            if abs(label.current_offset[x] - label.target_offset[x]) <= abs(label.offset_step[x]):
+                label.current_offset[x] = float(label.target_offset[x])
+            else:
+                label.current_offset[x] += label.offset_step[x]
 
 
 def get_screen_offset(widget):
@@ -356,6 +379,9 @@ def combine_color_with_alpha(rgb, alpha):
 def draw(label, surface: pygame.Surface):
     if not label.alive or not label.visible:
         return
+    offset_x, offset_y = get_screen_offset(label)
+    total_offset_x = offset_x + round(label.current_offset[0])
+    total_offset_y = offset_y + round(label.current_offset[1])
     mouse_pos = pygame.mouse.get_pos()
     is_hovering = is_point_in_rounded_rect(label, mouse_pos)
     if label.state == "enabled":
@@ -473,8 +499,7 @@ def draw(label, surface: pygame.Surface):
         label.height = temp_surf.get_height() + 20
         label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
 
-    offset_x, offset_y = get_screen_offset(label)
-    draw_rect = label.rect.move(offset_x, offset_y)
+    draw_rect = label.rect.move(total_offset_x, total_offset_y)
 
     draw_req_rect = pygame.Rect(0, 0, draw_rect.width, draw_rect.height)
     if bg_color:
@@ -551,7 +576,9 @@ def draw(label, surface: pygame.Surface):
 
 def is_point_in_rounded_rect(label, point):
     offset_x, offset_y = get_screen_offset(label)
-    rect = label.rect.move(offset_x, offset_y)
+    total_offset_x = offset_x + round(label.current_offset[0])
+    total_offset_y = offset_y + round(label.current_offset[1])
+    rect = label.rect.move(total_offset_x, total_offset_y)
     if not rect.collidepoint(point): return False
     max_r = max(label.top_left_corner_radius, label.top_right_corner_radius,
                 label.bottom_left_corner_radius, label.bottom_right_corner_radius)
@@ -587,6 +614,8 @@ def react(label, event=None):
     mouse_pos = pygame.mouse.get_pos()
     is_inside = is_point_in_rounded_rect(label, mouse_pos)
     screen_off_x, screen_off_y = get_screen_offset(label)
+    total_offset_x = screen_off_x + round(label.current_offset[0])
+    total_offset_y = screen_off_y + round(label.current_offset[1])
     if event:
         if event.type == pygame.KEYDOWN:
             label.trigger_event("<KEY>")
@@ -600,13 +629,14 @@ def react(label, event=None):
                     label.is_dragging = True
                     label.last_checked_dragging = current_time
                     if label.drag_offset:
-                        new_x = mouse_pos[0] - label.drag_offset[0] - screen_off_x
-                        new_y = mouse_pos[1] - label.drag_offset[1] - screen_off_y
+                        new_x = mouse_pos[0] - label.drag_offset[0] - total_offset_x
+                        new_y = mouse_pos[1] - label.drag_offset[1] - total_offset_y
                         label.place(new_x, new_y)
         elif event.type == pygame.MOUSEBUTTONDOWN and is_inside:
             if event.button == 1:
                 label.pressed = True
-                label.drag_offset = (mouse_pos[0] - (label.x + screen_off_x), mouse_pos[1] - (label.y + screen_off_y))
+                label.drag_offset = (mouse_pos[0] - (label.x + total_offset_x),
+                                     mouse_pos[1] - (label.y + total_offset_y))
                 label.trigger_event("<PRESS>")
         elif event.type == pygame.MOUSEBUTTONUP and is_inside:
             if event.button == 1:

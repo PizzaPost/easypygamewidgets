@@ -32,6 +32,7 @@ def flip(pygame_draw_function=None):
             elif isinstance(widget, Entry):
                 entry.draw(widget, misc.pg)
             elif isinstance(widget, Label):
+                label.update_animation(widget)
                 label.draw(widget, misc.pg)
             elif isinstance(widget, Surface):
                 surface.update_animation(widget)

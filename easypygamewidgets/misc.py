@@ -15,7 +15,7 @@ def check_update():
         response.raise_for_status()
         data = response.json()
         latest_version = data["version"]
-        current_version = "26.13"
+        current_version = "26.14"
         if latest_version != current_version:
             print(f"An update is available. Download it now with 'pip install --upgrade easypygamewidgets'\n"
                   f"You're currently on: {current_version}\n"
@@ -35,8 +35,26 @@ def check_linked():
         exit(0)
 
 
+def check_pygame_version():
+    try:
+        import pygame
+        if not hasattr(pygame, "IS_CE"): raise ImportError
+    except ImportError:
+        print("[INFO] easypygamewidgets 26.9+ requires 'pygame-ce'.\n"
+              "Existing 'pygame' installation detected. You have four ways to resolve this:\n"
+              "1. Update to Python 3.14+ and install pygame-ce:\n"
+              "     pip install pygame-ce\n"
+              "2. Replace pygame with pygame-ce (recommended):\n"
+              "     pip uninstall pygame && pip install pygame-ce\n"
+              "3. Isolation: Use a virtual environment (venv) for this project.\n"
+              "4. Legacy: Roll back to an older version of this library:\n"
+              "     pip install 'easypygamewidgets<=26.8' --force-reinstall")
+        exit(1)
+
+
 def link_pygame_window(window: pygame.Surface, layer=500):
     global pg
+    check_pygame_version()
     check_update()
     pg = window
     all_widgets.append((pg, layer))
