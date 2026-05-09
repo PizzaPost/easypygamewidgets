@@ -84,7 +84,7 @@ class Screen:
 
 
 def draw(screen, surface: pygame.Surface):
-    if screen.darken_background_with_alpha:
+    if screen.darken_background_with_alpha and screen.visible:
         background_surf = pygame.Surface(surface.get_size())
         background_surf.fill((0, 0, 0))
         background_surf.set_alpha(screen.darken_background_with_alpha)
