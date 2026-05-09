@@ -81,7 +81,9 @@ class Label:
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
         font.set_linesize(line_spacing)
-        tmp = font.render(text, True, (255, 255, 255))
+        lines = str(text).split("\n")
+        max_w = max((font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)
+        total_h = sum(font.render(line, True, (255, 255, 255)).get_height() for line in lines)
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -93,8 +95,8 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            self.width = tmp.get_width() + 40 + (alignment_spacing - 20)
-            self.height = tmp.get_height() + 20
+            self.width = max_w + 40 + (alignment_spacing - 20)
+            self.height = total_h + 20
         else:
             self.width = width
             self.height = height
@@ -246,9 +248,21 @@ class Label:
         self.is_dragging = False
         self.last_checked_dragging = None
         self.bindings = {}
+        self.needs_redraw = True
+        self.needs_transform = True
+        self.last_visual_state = None
+        self.original_surface = None
+        self.surface = None
+        self.target_scale = 1
+        self.current_scale = 1
+        self.scale_step = 0
+        self.target_rotation = 0
+        self.current_rotation = 0
+        self.rotation_step = 0
         self.target_offset = (0, 0)
         self.current_offset = [0, 0]
         self.offset_step = [0, 0]
+        self.use_rotozoom = False
         self.scheduled_functions = []
 
         misc.add_widget(self)
@@ -256,12 +270,16 @@ class Label:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+        self.needs_redraw = True
         if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs or 'text' in kwargs or 'line_spacing' in kwargs or 'font' in kwargs:
             self.font.set_linesize(self.line_spacing)
-            tmp = self.font.render(self.text, True, (255, 255, 255))
-            self.rect = pygame.Rect(self.x, self.y, tmp.get_width(), tmp.get_height())
-            self.width = self.rect.width + 40 + (self.alignment_spacing - 20)
-            self.height = self.rect.height + 20
+            lines = str(self.text).split("\n")
+            max_w = max((self.font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)
+            tot_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
+            if self.auto_size:
+                self.width = max_w + 40 + (self.alignment_spacing - 20)
+                self.height = tot_h + 20
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -304,10 +322,12 @@ class Label:
 
     def set_strikethrough(self, value: bool):
         self.strikethrough = value
+        self.needs_redraw = True
         return self
 
     def set_underline(self, value: bool):
         self.underline = value
+        self.needs_redraw = True
         return self
 
     def unbind(self, event: str):
@@ -338,6 +358,36 @@ class Label:
             self.tooltip = None
         return self
 
+    def scale(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_scale = 1
+        else:
+            self.target_scale = value
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        return self
+
+    def rotate(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_rotation = 0
+        else:
+            self.target_rotation = value
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        return self
+
+    def rotozoom(self, scale=None, rotation=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        self.target_scale = 1 if scale is None else scale
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        self.target_rotation = 0 if rotation is None else rotation
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        self.use_rotozoom = True
+        return self
+
     def offset(self, value: tuple[int, int], frames_to_finish=1):
         if frames_to_finish <= 0:
             frames_to_finish = 1
@@ -357,12 +407,29 @@ class Label:
 
 
 def update_animation(label):
+    scale_changed = False
+    rotation_changed = False
+    if label.current_scale != label.target_scale:
+        if abs(label.current_scale - label.target_scale) <= abs(label.scale_step):
+            label.current_scale = label.target_scale
+        else:
+            label.current_scale += label.scale_step
+        scale_changed = True
+    if label.current_rotation != label.target_rotation:
+        if abs(label.current_rotation - label.target_rotation) <= abs(label.rotation_step):
+            label.current_rotation = label.target_rotation
+        else:
+            label.current_rotation += label.rotation_step
+        rotation_changed = True
     for x in range(2):
         if label.current_offset[x] != label.target_offset[x]:
             if abs(label.current_offset[x] - label.target_offset[x]) <= abs(label.offset_step[x]):
                 label.current_offset[x] = float(label.target_offset[x])
             else:
                 label.current_offset[x] += label.offset_step[x]
+
+    if scale_changed or rotation_changed:
+        label.needs_transform = True
 
 
 def get_screen_offset(widget):
@@ -376,14 +443,7 @@ def combine_color_with_alpha(rgb, alpha):
     return (*rgb, alpha)
 
 
-def draw(label, surface: pygame.Surface):
-    if not label.alive or not label.visible:
-        return
-    offset_x, offset_y = get_screen_offset(label)
-    total_offset_x = offset_x + round(label.current_offset[0])
-    total_offset_y = offset_y + round(label.current_offset[1])
-    mouse_pos = pygame.mouse.get_pos()
-    is_hovering = is_point_in_rounded_rect(label, mouse_pos)
+def render_base_surface(label, is_hovering):
     if label.state == "enabled":
         if label.pressed:
             text_color = label.active_pressed_text_color
@@ -458,7 +518,135 @@ def draw(label, surface: pygame.Surface):
     underline_color = combine_color_with_alpha(underline_color, underline_color_alpha)
     strikethrough_color = combine_color_with_alpha(strikethrough_color, strikethrough_color_alpha)
     brd_color = combine_color_with_alpha(brd_color, brd_color_alpha)
+    label.original_surface = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
+    draw_req_rect = pygame.Rect(0, 0, label.width, label.height)
+    if bg_color:
+        shape_surf = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
+        pygame.draw.rect(shape_surf, bg_color, draw_req_rect,
+                         border_top_left_radius=label.top_left_corner_radius,
+                         border_top_right_radius=label.top_right_corner_radius,
+                         border_bottom_left_radius=label.bottom_left_corner_radius,
+                         border_bottom_right_radius=label.bottom_right_corner_radius)
+        shape_surf.set_alpha(bg_color[3])
+        label.original_surface.blit(shape_surf, (0, 0))
+    if brd_color:
+        shape_surf = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
+        pygame.draw.rect(shape_surf, brd_color, draw_req_rect, width=label.border_thickness,
+                         border_top_left_radius=label.top_left_corner_radius,
+                         border_top_right_radius=label.top_right_corner_radius,
+                         border_bottom_left_radius=label.bottom_left_corner_radius,
+                         border_bottom_right_radius=label.bottom_right_corner_radius)
+        shape_surf.set_alpha(brd_color[3])
+        label.original_surface.blit(shape_surf, (0, 0))
 
+    def render_text_line(txt, color, rect_ref, offset=(0, 0)):
+        lines = str(txt).split("\n")
+        if not lines: return None
+        total_height = sum(label.font.render(line, True, color).get_height() for line in lines)
+        current_y = rect_ref.centery - total_height // 2 + offset[1]
+        union_rect = None
+        for line in lines:
+            line_surf = label.font.render(line, True, color)
+            line_h = line_surf.get_height()
+            cx, cy = rect_ref.centerx + offset[0], current_y + line_h // 2
+            if label.alignment == "stretched" and len(line) > 1:
+                total_char_width = sum(label.font.render(char, True, color).get_width() for char in line)
+                available_width = rect_ref.width - (label.alignment_spacing * 2)
+                if available_width > total_char_width:
+                    spacing = (available_width - total_char_width) / (len(line) - 1)
+                    curr_x = rect_ref.left + label.alignment_spacing + offset[0]
+                    line_rect = None
+                    for char in line:
+                        char_s = label.font.render(char, True, color)
+                        char_s.set_alpha(color[3])
+                        char_r = char_s.get_rect(midleft=(curr_x, cy))
+                        label.original_surface.blit(char_s, char_r)
+                        curr_x += char_s.get_width() + spacing
+                        if line_rect is None:
+                            line_rect = char_r.copy()
+                        else:
+                            line_rect.union_ip(char_r)
+                    if union_rect is None:
+                        union_rect = line_rect
+                    else:
+                        union_rect.union_ip(line_rect)
+                    current_y += line_h
+                    continue
+            txt_rect = line_surf.get_rect()
+            if label.alignment == "left":
+                txt_rect.midleft = (rect_ref.left + label.alignment_spacing + offset[0], cy)
+            elif label.alignment == "right":
+                txt_rect.midright = (rect_ref.right - label.alignment_spacing + offset[0], cy)
+            else:
+                txt_rect.center = (cx, cy)
+            line_surf.set_alpha(color[3])
+            label.original_surface.blit(line_surf, txt_rect)
+            if union_rect is None:
+                union_rect = txt_rect.copy()
+            else:
+                union_rect.union_ip(txt_rect)
+            current_y += line_h
+        return union_rect
+
+    surface_rect = label.original_surface.get_rect()
+    if shadow_color and shadow_color[3] > 0:
+        render_text_line(label.text, shadow_color, surface_rect, offset=(2, 2))
+    final_text_rect = render_text_line(label.text, text_color, surface_rect)
+    if final_text_rect:
+        if underline_color and label.underline:
+            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
+            shape_surf_rect = shape_surf.get_rect()
+            start_pos = (shape_surf_rect.left, shape_surf_rect.bottom - 2)
+            end_pos = (shape_surf_rect.right, shape_surf_rect.bottom - 2)
+            shape_surf.set_alpha(underline_color[3])
+            pygame.draw.line(shape_surf, underline_color, start_pos, end_pos, 2)
+            label.original_surface.blit(shape_surf, final_text_rect)
+        if strikethrough_color and label.strikethrough:
+            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
+            shape_surf_rect = shape_surf.get_rect()
+            start_pos = (shape_surf_rect.left, shape_surf_rect.centery)
+            end_pos = (shape_surf_rect.right, shape_surf_rect.centery)
+            shape_surf.set_alpha(strikethrough_color[3])
+            pygame.draw.line(shape_surf, strikethrough_color, start_pos, end_pos, 2)
+            label.original_surface.blit(shape_surf, final_text_rect)
+    label.last_visual_state = (label.state, is_hovering, label.pressed)
+    label.needs_redraw = False
+    label.needs_transform = True
+
+
+def draw(label, surface: pygame.Surface):
+    if not label.alive or not label.visible:
+        return
+    offset_x, offset_y = get_screen_offset(label)
+    total_offset_x = offset_x + round(label.current_offset[0])
+    total_offset_y = offset_y + round(label.current_offset[1])
+    mouse_pos = pygame.mouse.get_pos()
+    is_hovering = is_point_in_rounded_rect(label, mouse_pos)
+    current_visual_state = (label.state, is_hovering, label.pressed)
+    if getattr(label, "last_visual_state", None) != current_visual_state or getattr(label, "needs_redraw", True):
+        render_base_surface(label, is_hovering)
+    if getattr(label, "needs_transform", True) or getattr(label, "surface", None) is None:
+        if label.current_scale != 1 or label.current_rotation != 0:
+            new_width = int(label.original_surface.get_width() * label.current_scale)
+            new_height = int(label.original_surface.get_height() * label.current_scale)
+            if new_width > 0 and new_height > 0:
+                if label.use_rotozoom:
+                    label.surface = pygame.transform.rotozoom(label.original_surface, label.current_rotation,
+                                                              label.current_scale)
+                else:
+                    scaled_surface = pygame.transform.smoothscale(label.original_surface, (new_width, new_height))
+                    label.surface = pygame.transform.rotate(scaled_surface, label.current_rotation)
+            else:
+                label.surface = pygame.Surface((0, 0), pygame.SRCALPHA)
+        else:
+            label.surface = label.original_surface.copy()
+        base_rect = pygame.Rect(label.x, label.y, label.width, label.height)
+        old_center = base_rect.center
+        label.rect = label.surface.get_rect()
+        label.rect.center = old_center
+        label._needs_transform = False
+    draw_rect = label.rect.move(total_offset_x, total_offset_y)
+    surface.blit(label.surface, draw_rect)
     if is_hovering:
         if label.state == "enabled":
             if label.pressed:
@@ -478,7 +666,6 @@ def draw(label, surface: pygame.Surface):
         if label.original_cursor:
             pygame.mouse.set_cursor(label.original_cursor)
             label.original_cursor = None
-
     if is_hovering and not getattr(label, "is_hovered", False):
         label.is_hovered = True
         label.trigger_event("<MOUSE-IN>")
@@ -493,86 +680,6 @@ def draw(label, surface: pygame.Surface):
         if label.tooltip:
             label.tooltip.hide()
 
-    if label.auto_size:
-        temp_surf = label.font.render(label.text, True, text_color)
-        label.width = temp_surf.get_width() + 40 + (label.alignment_spacing - 20)
-        label.height = temp_surf.get_height() + 20
-        label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
-
-    draw_rect = label.rect.move(total_offset_x, total_offset_y)
-
-    draw_req_rect = pygame.Rect(0, 0, draw_rect.width, draw_rect.height)
-    if bg_color:
-        shape_surf = pygame.Surface((draw_rect.width, draw_rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(shape_surf, bg_color, draw_req_rect,
-                         border_top_left_radius=label.top_left_corner_radius,
-                         border_top_right_radius=label.top_right_corner_radius,
-                         border_bottom_left_radius=label.bottom_left_corner_radius,
-                         border_bottom_right_radius=label.bottom_right_corner_radius)
-        shape_surf.set_alpha(bg_color[3])
-        surface.blit(shape_surf, draw_rect)
-    if brd_color:
-        shape_surf = pygame.Surface((draw_rect.width, draw_rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(shape_surf, brd_color, draw_req_rect, width=label.border_thickness,
-                         border_top_left_radius=label.top_left_corner_radius,
-                         border_top_right_radius=label.top_right_corner_radius,
-                         border_bottom_left_radius=label.bottom_left_corner_radius,
-                         border_bottom_right_radius=label.bottom_right_corner_radius)
-        shape_surf.set_alpha(bg_color[3])
-        surface.blit(shape_surf, draw_rect)
-
-    def render_text_line(txt, color, rect_ref, offset=(0, 0)):
-        cx, cy = rect_ref.centerx + offset[0], rect_ref.centery + offset[1]
-        if label.alignment == "stretched" and len(txt) > 1 and not label.auto_size:
-            total_char_width = sum(label.font.render(char, True, color).get_width() for char in txt)
-            available_width = rect_ref.width - (label.alignment_spacing * 2)
-            if available_width > total_char_width:
-                spacing = (available_width - total_char_width) / (len(txt) - 1)
-                current_x = rect_ref.left + label.alignment_spacing + offset[0]
-                for char in txt:
-                    char_surf = label.font.render(char, True, color)
-                    char_surf.set_alpha(color[3])
-                    char_rect = char_surf.get_rect(midleft=(current_x, cy))
-                    surface.blit(char_surf, char_rect)
-                    current_x += char_surf.get_width() + spacing
-                return pygame.Rect(rect_ref.left + label.alignment_spacing + offset[0],
-                                   rect_ref.top + offset[1], available_width, rect_ref.height)
-            txt_surf = label.font.render(txt, True, color)
-            txt_rect = txt_surf.get_rect(center=(cx, cy))
-        else:
-            txt_surf = label.font.render(txt, True, color)
-            txt_rect = txt_surf.get_rect()
-            if label.alignment == "left":
-                txt_rect.midleft = (rect_ref.left + label.alignment_spacing + offset[0], cy)
-            elif label.alignment == "right":
-                txt_rect.midright = (rect_ref.right - label.alignment_spacing + offset[0], cy)
-            else:
-                txt_rect.center = (cx, cy)
-        txt_surf.set_alpha(color[3])
-        surface.blit(txt_surf, txt_rect)
-        return txt_rect
-
-    if shadow_color and shadow_color[3] > 0:
-        render_text_line(label.text, shadow_color, draw_rect, offset=(2, 2))
-    final_text_rect = render_text_line(label.text, text_color, draw_rect)
-    if final_text_rect:
-        if underline_color and label.underline:
-            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
-            shape_surf_rect = shape_surf.get_rect()
-            start_pos = (shape_surf_rect.left, shape_surf_rect.bottom - 2)
-            end_pos = (shape_surf_rect.right, shape_surf_rect.bottom - 2)
-            shape_surf.set_alpha(underline_color[3])
-            pygame.draw.line(shape_surf, underline_color, start_pos, end_pos, 2)
-            surface.blit(shape_surf, final_text_rect)
-        if strikethrough_color and label.strikethrough:
-            shape_surf = pygame.Surface(final_text_rect.size, pygame.SRCALPHA)
-            shape_surf_rect = shape_surf.get_rect()
-            start_pos = (shape_surf_rect.left, shape_surf_rect.centery)
-            end_pos = (shape_surf_rect.right, shape_surf_rect.centery)
-            shape_surf.set_alpha(strikethrough_color[3])
-            pygame.draw.line(shape_surf, strikethrough_color, start_pos, end_pos, 2)
-            surface.blit(shape_surf, final_text_rect)
-
 
 def is_point_in_rounded_rect(label, point):
     offset_x, offset_y = get_screen_offset(label)
@@ -580,6 +687,8 @@ def is_point_in_rounded_rect(label, point):
     total_offset_y = offset_y + round(label.current_offset[1])
     rect = label.rect.move(total_offset_x, total_offset_y)
     if not rect.collidepoint(point): return False
+    if getattr(label, "current_scale", 1) != 1 or getattr(label, "current_rotation", 0) != 0:
+        return True
     max_r = max(label.top_left_corner_radius, label.top_right_corner_radius,
                 label.bottom_left_corner_radius, label.bottom_right_corner_radius)
     if (rect.left + max_r <= point[0] <= rect.right - max_r) or \
