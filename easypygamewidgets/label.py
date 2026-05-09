@@ -98,7 +98,7 @@ class Label:
             self.width = max_w + 40 + (alignment_spacing - 20)
             self.height = total_h + 20
         else:
-            self.width = width
+            self.width = width + alignment_spacing
             self.height = height
         self.text = text
         self.active_hover_text_color = active_hover_text_color
@@ -271,10 +271,12 @@ class Label:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.needs_redraw = True
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs or 'text' in kwargs or 'line_spacing' in kwargs or 'font' in kwargs:
+        layout_keys = ('x', 'y', 'width', 'height', 'text', 'line_spacing', 'font', 'alignment_spacing', 'auto_size')
+        if any(k in kwargs for k in layout_keys):
             self.font.set_linesize(self.line_spacing)
             lines = str(self.text).split("\n")
-            max_w = max((self.font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)
+            max_w = max((self.font.render(line, True, (255, 255, 255)).get_width() for line in lines),
+                        default=0) + self.alignment_spacing
             tot_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
                 self.width = max_w + 40 + (self.alignment_spacing - 20)
@@ -518,6 +520,14 @@ def render_base_surface(label, is_hovering):
     underline_color = combine_color_with_alpha(underline_color, underline_color_alpha)
     strikethrough_color = combine_color_with_alpha(strikethrough_color, strikethrough_color_alpha)
     brd_color = combine_color_with_alpha(brd_color, brd_color_alpha)
+    if label.auto_size:
+        label.font.set_linesize(label.line_spacing)
+        lines = str(label.text).split("\n")
+        max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
+        tot_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
+        label.width = max_w + 40 + (label.alignment_spacing - 20)
+        label.height = tot_h + 20
+        label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
     label.original_surface = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
     draw_req_rect = pygame.Rect(0, 0, label.width, label.height)
     if bg_color:
@@ -609,7 +619,9 @@ def render_base_surface(label, is_hovering):
             shape_surf.set_alpha(strikethrough_color[3])
             pygame.draw.line(shape_surf, strikethrough_color, start_pos, end_pos, 2)
             label.original_surface.blit(shape_surf, final_text_rect)
-    label.last_visual_state = (label.state, is_hovering, label.pressed)
+    label.last_visual_state = (label.state, is_hovering, label.pressed, label.text, label.alignment_spacing,
+                               label.alignment, label.line_spacing, label.font, label.auto_size, label.width,
+                               label.height)
     label.needs_redraw = False
     label.needs_transform = True
 
@@ -622,7 +634,8 @@ def draw(label, surface: pygame.Surface):
     total_offset_y = offset_y + round(label.current_offset[1])
     mouse_pos = pygame.mouse.get_pos()
     is_hovering = is_point_in_rounded_rect(label, mouse_pos)
-    current_visual_state = (label.state, is_hovering, label.pressed)
+    current_visual_state = (label.state, is_hovering, label.pressed, label.text, label.alignment_spacing,
+                            label.alignment, label.line_spacing, label.font, label.auto_size, label.width, label.height)
     if getattr(label, "last_visual_state", None) != current_visual_state or getattr(label, "needs_redraw", True):
         render_base_surface(label, is_hovering)
     if getattr(label, "needs_transform", True) or getattr(label, "surface", None) is None:
