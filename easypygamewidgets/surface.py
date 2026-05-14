@@ -47,9 +47,9 @@ class Surface:
         if tooltip:
             tooltip.configure(layer=self.layer + 1)
             if not tooltip.style:
-                tooltip.configure(active_unpressed_text_color=(255, 255, 255),
-                                  active_unpressed_background_color=(50, 50, 50),
-                                  active_unpressed_border_color=(100, 100, 100))
+                tooltip.configure(active_unpressed_text_color=(255, 255, 255, 255),
+                                  active_unpressed_background_color=(50, 50, 50, 255),
+                                  active_unpressed_border_color=(100, 100, 100, 255))
         self.data = data
         self.x = 0
         self.y = 0
@@ -139,9 +139,9 @@ class Surface:
         self.tooltip = tooltip
         tooltip.configure(layer=self.layer + 1)
         if not tooltip.style:
-            tooltip.configure(active_unpressed_text_color=(255, 255, 255),
-                              active_unpressed_background_color=(50, 50, 50),
-                              active_unpressed_border_color=(100, 100, 100))
+            tooltip.configure(active_unpressed_text_color=(255, 255, 255, 255),
+                              active_unpressed_background_color=(50, 50, 50, 255),
+                              active_unpressed_border_color=(100, 100, 100, 255))
         return self
 
     def remove_tooltip(self):

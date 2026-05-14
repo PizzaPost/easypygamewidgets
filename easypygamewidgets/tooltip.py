@@ -62,13 +62,13 @@ class Tooltip:
             self.active_unpressed_border_color = normalize_color((188, 46, 41, 255))
 
         if active_unpressed_text_color:
-            self.active_unpressed_text_color = active_unpressed_text_color
+            self.active_unpressed_text_color = normalize_color(active_unpressed_text_color)
             self.style = "custom"
         if active_unpressed_background_color:
-            self.active_unpressed_background_color = active_unpressed_background_color
+            self.active_unpressed_background_color = normalize_color(active_unpressed_background_color)
             self.style = "custom"
         if active_unpressed_border_color:
-            self.active_unpressed_border_color = active_unpressed_border_color
+            self.active_unpressed_border_color = normalize_color(active_unpressed_border_color)
             self.style = "custom"
         cursor_input = {
             "active_hover": active_hover_cursor
