@@ -326,16 +326,17 @@ def react(surface, event=None):
             keyname = pygame.key.name(event.key)
             surface.trigger_event(f"<{keyname.upper()}>")
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and is_inside:
-                surface.pressed = True
-                surface.drag_offset = (mouse_pos[0] - (surface.x + total_offset_x),
-                                       mouse_pos[1] - (surface.y + total_offset_y))
+            if event.button == 1:
                 surface.trigger_event("<PRESS>")
+                if is_inside:
+                    surface.pressed = True
+                    surface.drag_offset = (mouse_pos[0] - (surface.x + total_offset_x),
+                                           mouse_pos[1] - (surface.y + total_offset_y))
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1 and is_inside and surface.pressed:
+            if event.button == 1 and surface.pressed:
+                surface.trigger_event("<RELEASE>")
                 surface.pressed = False
                 surface.is_dragging = False
-                surface.trigger_event("<RELEASE>")
     if surface.last_checked_dragging:
         if current_time - surface.last_checked_dragging > 0.2:
             surface.is_dragging = False

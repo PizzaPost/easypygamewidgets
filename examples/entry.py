@@ -18,6 +18,8 @@ def draw():
     window.fill((30, 30, 30))
 
 
+epw.create_pygame_layer(draw, 500)
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -25,6 +27,6 @@ while running:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip(draw)
+    epw.flip()
     clock.tick(60)
 pygame.quit()

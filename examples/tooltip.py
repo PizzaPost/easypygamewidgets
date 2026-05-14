@@ -27,9 +27,9 @@ tooltip.add_widget(button)
 
 button = epw.Button(text="And if a widget is blocked it can look like this :)").place(30, 270)
 epw.Tooltip(text="Yeah, tooltips can be bound to multiple widgets", style="blocked",
-            widget=button)  # you need to set it by yourself
+            widget=button)
 
-tooltip = epw.Tooltip(text="but widgets only to one tooltip.", active_unpressed_text_color=(150, 200, 150),
+tooltip = epw.Tooltip(text="but a widget only to one tooltip.", active_unpressed_text_color=(150, 200, 150),
                       active_unpressed_background_color=(48, 83, 57),
                       active_unpressed_border_color=(47, 122, 66))
 button = epw.Button(text="You can also create your own style.").place(30, 350)
@@ -40,6 +40,8 @@ def draw():
     window.fill((30, 30, 30))
 
 
+epw.create_pygame_layer(draw, 500)
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -47,6 +49,6 @@ while running:
             running = False
         epw.handle_event(event)
     epw.handle_special_events()
-    epw.flip(draw)
+    epw.flip()
     clock.tick(60)
 pygame.quit()

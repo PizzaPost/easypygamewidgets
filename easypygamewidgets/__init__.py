@@ -12,20 +12,21 @@ from .timekeeper import Timekeeper
 from .tooltip import Tooltip
 
 
-def flip(pygame_draw_function=None):
+def flip():
     if not misc.pg:
         misc.check_linked()
     for widget in misc.all_widgets:
         if isinstance(widget, tuple):
-            if isinstance(widget[0], pygame.Surface):
-                if pygame_draw_function:
-                    pygame_draw_function()
-            else:
-                widget[0]()
+            if not isinstance(widget[0], pygame.Surface):  # if it's a function
+                try:
+                    widget[0]()
+                except TypeError:
+                    pass
         else:
             if isinstance(widget, Screen):
                 screen.draw(widget, misc.pg)
             elif isinstance(widget, Button):
+                button.update_animation(widget)
                 button.draw(widget, misc.pg)
             elif isinstance(widget, Slider):
                 slider.draw(widget, misc.pg)

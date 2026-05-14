@@ -29,9 +29,9 @@ class Tooltip:
         self.icon = None
         self.layer = layer
         if not style:
-            self.active_unpressed_text_color = (255, 255, 255)
-            self.active_unpressed_background_color = (50, 50, 50)
-            self.active_unpressed_border_color = (100, 100, 100)
+            self.active_unpressed_text_color = normalize_color((255, 255, 255, 255))
+            self.active_unpressed_background_color = normalize_color((50, 50, 50, 255))
+            self.active_unpressed_border_color = normalize_color((100, 100, 100, 255))
         if widget:
             widget.set_tooltip(self)
         self.auto_size = auto_size
@@ -43,23 +43,24 @@ class Tooltip:
             if not icon:
                 self.icon = pygame.image.load(os.path.join(pathlib.Path(__file__).resolve().parent,
                                                            "assets", "tooltip", "info.png"))
-            self.active_unpressed_text_color = (255, 255, 255)
-            self.active_unpressed_background_color = (46, 55, 90)
-            self.active_unpressed_border_color = (39, 78, 194)
+            self.active_unpressed_text_color = normalize_color((255, 255, 255, 255))
+            self.active_unpressed_background_color = normalize_color((46, 55, 90, 255))
+            self.active_unpressed_border_color = normalize_color((39, 78, 194, 255))
         elif style == "warning":
             if not icon:
                 self.icon = pygame.image.load(os.path.join(pathlib.Path(__file__).resolve().parent,
                                                            "assets", "tooltip", "warning.png"))
-            self.active_unpressed_text_color = (255, 255, 255)
-            self.active_unpressed_background_color = (111, 100, 34)
-            self.active_unpressed_border_color = (186, 167, 46)
+            self.active_unpressed_text_color = normalize_color((255, 255, 255, 255))
+            self.active_unpressed_background_color = normalize_color((111, 100, 34, 255))
+            self.active_unpressed_border_color = normalize_color((186, 167, 46, 255))
         elif style == "blocked":
             if not icon:
                 self.icon = pygame.image.load(os.path.join(pathlib.Path(__file__).resolve().parent,
                                                            "assets", "tooltip", "blocked.png"))
-            self.active_unpressed_text_color = (255, 255, 255)
-            self.active_unpressed_background_color = (150, 63, 60)
-            self.active_unpressed_border_color = (188, 46, 41)
+            self.active_unpressed_text_color = normalize_color((255, 255, 255, 255))
+            self.active_unpressed_background_color = normalize_color((150, 63, 60, 255))
+            self.active_unpressed_border_color = normalize_color((188, 46, 41, 255))
+
         if active_unpressed_text_color:
             self.active_unpressed_text_color = active_unpressed_text_color
             self.style = "custom"
@@ -97,6 +98,8 @@ class Tooltip:
         self.original_cursor = None
         self.visible = False
         self.scheduled_functions = []
+        self.needs_redraw = True
+        self.cached_surface = None
 
         self.font.set_linesize(line_spacing)
 
@@ -105,6 +108,7 @@ class Tooltip:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+        self.needs_redraw = True
         if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'widget' in kwargs:
@@ -165,17 +169,84 @@ class Tooltip:
         return self
 
 
+def normalize_color(color):
+    if color is None:
+        return (0, 0, 0, 0)
+    if len(color) == 3:
+        return (*color, 255)
+    return color
+
+
+def render_tooltip_surface(tooltip):
+    text_color = tooltip.active_unpressed_text_color
+    bg_color = tooltip.active_unpressed_background_color
+    brd_color = tooltip.active_unpressed_border_color
+    if tooltip.auto_size:
+        temp_surf = tooltip.font.render(tooltip.text, True, text_color)
+        tooltip.height = temp_surf.get_height() + 20
+        icon_offset = tooltip.height if tooltip.icon and not tooltip.suppress_icon else 0
+        tooltip.width = temp_surf.get_width() + (tooltip.alignment_spacing * 2) + icon_offset
+        tooltip.rect = pygame.Rect(tooltip.x, tooltip.y, tooltip.width, tooltip.height)
+    cached = pygame.Surface((tooltip.width, tooltip.height), pygame.SRCALPHA)
+    local_rect = pygame.Rect(0, 0, tooltip.width, tooltip.height)
+    tmp = pygame.Surface(pygame.Rect(local_rect).size, pygame.SRCALPHA)
+    pygame.draw.rect(tmp, bg_color, tmp.get_rect(), border_radius=tooltip.corner_radius)
+    cached.blit(tmp, local_rect)
+    icon_offset = local_rect.height if tooltip.icon and not tooltip.suppress_icon else 0
+    text_area_left = icon_offset
+    text_area_width = local_rect.width - icon_offset
+    if tooltip.icon and not tooltip.suppress_icon:
+        scaled_icon = pygame.transform.smoothscale(tooltip.icon if isinstance(tooltip.icon, pygame.Surface)
+                                                   else tooltip.icon.surface, (local_rect.height,
+                                                                               local_rect.height))
+        cached.blit(scaled_icon, (0, 0))
+    if brd_color:
+        tmp = pygame.Surface(pygame.Rect(local_rect).size, pygame.SRCALPHA)
+        pygame.draw.rect(tmp, brd_color, tmp.get_rect(), width=tooltip.border_thickness,
+                         border_radius=tooltip.corner_radius)
+        cached.blit(tmp, local_rect)
+    if tooltip.alignment == "stretched" and len(tooltip.text) > 1 and not tooltip.auto_size:
+        total_char_width = sum(tooltip.font.render(char, True, text_color).get_width() for char in tooltip.text)
+        available_width = text_area_width - (tooltip.alignment_spacing * 2)
+        if available_width > total_char_width:
+            spacing = (available_width - total_char_width) / (len(tooltip.text) - 1)
+            current_x = text_area_left + tooltip.alignment_spacing
+            for char in tooltip.text:
+                char_surf = tooltip.font.render(char, True, text_color)
+                char_surf.set_alpha(text_color[3])
+                cached.blit(char_surf, char_surf.get_rect(midleft=(current_x, local_rect.centery)))
+                current_x += char_surf.get_width() + spacing
+        else:
+            text_surf = tooltip.font.render(tooltip.text, True, text_color)
+            text_surf.set_alpha(text_color[3])
+            cached.blit(text_surf,
+                        text_surf.get_rect(center=(text_area_left + text_area_width // 2, local_rect.centery)))
+    else:
+        text_surf = tooltip.font.render(tooltip.text, True, text_color)
+        text_surf.set_alpha(text_color[3])
+        text_rect = text_surf.get_rect()
+        text_rect.centery = local_rect.centery
+        if tooltip.alignment == "left":
+            text_rect.left = text_area_left + tooltip.alignment_spacing
+        elif tooltip.alignment == "right":
+            text_rect.right = local_rect.right - tooltip.alignment_spacing
+        else:
+            text_rect.centerx = text_area_left + (text_area_width // 2)
+        cached.blit(text_surf, text_rect)
+    tooltip.cached_surface = cached
+    tooltip.needs_redraw = False
+
+
 def draw(tooltip, surface: pygame.Surface):
     if not tooltip.visible:
         return
     tooltip.font.set_linesize(tooltip.line_spacing)
     mouse_pos = pygame.mouse.get_pos()
     is_hovering = is_point_in_rounded_rect(tooltip, mouse_pos)
-    text_color = tooltip.active_unpressed_text_color
-    bg_color = tooltip.active_unpressed_background_color
-    brd_color = tooltip.active_unpressed_border_color
-
+    if tooltip.needs_redraw or tooltip.cached_surface is None:
+        render_tooltip_surface(tooltip)
     if is_hovering:
+        cursor_key = "active_hover"
         if tooltip.state == "enabled":
             cursor_key = "active_hover"
         target_cursor = tooltip.cursors.get(cursor_key)
@@ -200,52 +271,8 @@ def draw(tooltip, surface: pygame.Surface):
         tooltip.is_hovered = False
         tooltip.trigger_event("<HIDE>")
 
-    if tooltip.auto_size:
-        temp_surf = tooltip.font.render(tooltip.text, True, text_color)
-        tooltip.height = temp_surf.get_height() + 20
-        icon_offset = tooltip.height if tooltip.icon and not tooltip.suppress_icon else 0
-        tooltip.width = temp_surf.get_width() + (tooltip.alignment_spacing * 2) + icon_offset
-        tooltip.rect = pygame.Rect(tooltip.x, tooltip.y, tooltip.width, tooltip.height)
-
     draw_rect = tooltip.rect.move(mouse_pos[0], mouse_pos[1])
-
-    pygame.draw.rect(surface, bg_color, draw_rect, border_radius=tooltip.corner_radius)
-    icon_offset = draw_rect.height if tooltip.icon and not tooltip.suppress_icon else 0
-    text_area_left = draw_rect.left + icon_offset
-    text_area_width = draw_rect.width - icon_offset
-    if tooltip.icon and not tooltip.suppress_icon:
-        scaled_icon = pygame.transform.smoothscale(
-            tooltip.icon if isinstance(tooltip.icon, pygame.Surface) else tooltip.icon.surface,
-            (draw_rect.height, draw_rect.height))
-        surface.blit(scaled_icon, draw_rect.topleft)
-    if brd_color:
-        pygame.draw.rect(surface, brd_color, draw_rect, width=tooltip.border_thickness,
-                         border_radius=tooltip.corner_radius)
-    if tooltip.alignment == "stretched" and len(tooltip.text) > 1 and not tooltip.auto_size:
-        total_char_width = sum(tooltip.font.render(char, True, text_color).get_width() for char in tooltip.text)
-        available_width = text_area_width - (tooltip.alignment_spacing * 2)
-        if available_width > total_char_width:
-            spacing = (available_width - total_char_width) / (len(tooltip.text) - 1)
-            current_x = text_area_left + tooltip.alignment_spacing
-            for char in tooltip.text:
-                char_surf = tooltip.font.render(char, True, text_color)
-                surface.blit(char_surf, char_surf.get_rect(midleft=(current_x, draw_rect.centery)))
-                current_x += char_surf.get_width() + spacing
-        else:
-            text_surf = tooltip.font.render(tooltip.text, True, text_color)
-            surface.blit(text_surf,
-                         text_surf.get_rect(center=(text_area_left + text_area_width // 2, draw_rect.centery)))
-    else:
-        text_surf = tooltip.font.render(tooltip.text, True, text_color)
-        text_rect = text_surf.get_rect()
-        text_rect.centery = draw_rect.centery
-        if tooltip.alignment == "left":
-            text_rect.left = text_area_left + tooltip.alignment_spacing
-        elif tooltip.alignment == "right":
-            text_rect.right = draw_rect.right - tooltip.alignment_spacing
-        else:
-            text_rect.centerx = text_area_left + (text_area_width // 2)
-        surface.blit(text_surf, text_rect)
+    surface.blit(tooltip.cached_surface, draw_rect)
 
 
 def is_point_in_rounded_rect(tooltip, point):

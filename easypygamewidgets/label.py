@@ -11,66 +11,36 @@ class Label:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 80,
                  text: str = "easypygamewidgets Label", state="enabled",
-                 active_hover_text_color: tuple = (255, 255, 255),
-                 active_hover_text_color_alpha: int = 255,
-                 active_hover_shadow_color: tuple = (50, 50, 50),
-                 active_hover_shadow_color_alpha: int = 200,
+                 active_hover_text_color: tuple | None = (255, 255, 255, 255),
+                 active_hover_shadow_color: tuple | None = (50, 50, 50, 200),
                  active_hover_background_color: tuple | None = None,
-                 active_hover_background_color_alpha: int = 255,
                  active_hover_underline_color: tuple | None = None,
-                 active_hover_underline_color_alpha: int = 255,
                  active_hover_strikethrough_color: tuple | None = None,
-                 active_hover_strikethrough_color_alpha: int = 255,
-                 active_hover_border_color: tuple = (),
-                 active_hover_border_color_alpha: int = 255,
-                 active_pressed_text_color: tuple = (255, 255, 255),
-                 active_pressed_text_color_alpha: int = 255,
-                 active_pressed_shadow_color: tuple = (50, 50, 50),
-                 active_pressed_shadow_color_alpha: int = 200,
+                 active_hover_border_color: tuple | None = None,
+                 active_pressed_text_color: tuple | None = (255, 255, 255, 255),
+                 active_pressed_shadow_color: tuple | None = (50, 50, 50, 200),
                  active_pressed_background_color: tuple | None = None,
-                 active_pressed_background_color_alpha: int = 255,
                  active_pressed_underline_color: tuple | None = None,
-                 active_pressed_underline_color_alpha: int = 255,
                  active_pressed_strikethrough_color: tuple | None = None,
-                 active_pressed_strikethrough_color_alpha: int = 255,
-                 active_pressed_border_color: tuple = (),
-                 active_pressed_border_color_alpha: int = 255,
-                 active_unpressed_text_color: tuple = (255, 255, 255),
-                 active_unpressed_text_color_alpha: int = 255,
-                 active_unpressed_shadow_color: tuple = (50, 50, 50),
-                 active_unpressed_shadow_color_alpha: int = 200,
+                 active_pressed_border_color: tuple | None = None,
+                 active_unpressed_text_color: tuple | None = (255, 255, 255, 255),
+                 active_unpressed_shadow_color: tuple | None = (50, 50, 50, 200),
                  active_unpressed_background_color: tuple | None = None,
-                 active_unpressed_background_color_alpha: int = 255,
                  active_unpressed_underline_color: tuple | None = None,
-                 active_unpressed_underline_color_alpha: int = 255,
                  active_unpressed_strikethrough_color: tuple | None = None,
-                 active_unpressed_strikethrough_color_alpha: int = 255,
-                 active_unpressed_border_color: tuple = (),
-                 active_unpressed_border_color_alpha: int = 255,
-                 disabled_hover_text_color: tuple = (150, 150, 150),
-                 disabled_hover_text_color_alpha: int = 255,
-                 disabled_hover_shadow_color: tuple = (50, 50, 50),
-                 disabled_hover_shadow_color_alpha: int = 200,
+                 active_unpressed_border_color: tuple | None = None,
+                 disabled_hover_text_color: tuple | None = (150, 150, 150, 255),
+                 disabled_hover_shadow_color: tuple | None = (50, 50, 50, 200),
                  disabled_hover_background_color: tuple | None = None,
-                 disabled_hover_background_color_alpha: int = 255,
                  disabled_hover_underline_color: tuple | None = None,
-                 disabled_hover_underline_color_alpha: int = 255,
                  disabled_hover_strikethrough_color: tuple | None = None,
-                 disabled_hover_strikethrough_color_alpha: int = 255,
-                 disabled_hover_border_color: tuple = (),
-                 disabled_hover_border_color_alpha: int = 255,
-                 disabled_unpressed_text_color: tuple = (150, 150, 150),
-                 disabled_unpressed_text_color_alpha: int = 255,
-                 disabled_unpressed_shadow_color: tuple = (50, 50, 50),
-                 disabled_unpressed_shadow_color_alpha: int = 200,
+                 disabled_hover_border_color: tuple | None = None,
+                 disabled_unpressed_text_color: tuple | None = (150, 150, 150, 255),
+                 disabled_unpressed_shadow_color: tuple | None = (50, 50, 50, 200),
                  disabled_unpressed_background_color: tuple | None = None,
-                 disabled_unpressed_background_color_alpha: int = 255,
                  disabled_unpressed_underline_color: tuple | None = None,
-                 disabled_unpressed_underline_color_alpha: int = 255,
                  disabled_unpressed_strikethrough_color: tuple | None = None,
-                 disabled_unpressed_strikethrough_color_alpha: int = 255,
-                 disabled_unpressed_border_color: tuple = (),
-                 disabled_unpressed_border_color_alpha: int = 255,
+                 disabled_unpressed_border_color: tuple | None = None,
                  border_thickness: int = 2,
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
@@ -101,106 +71,82 @@ class Label:
             self.width = width + alignment_spacing
             self.height = height
         self.text = text
-        self.active_hover_text_color = active_hover_text_color
-        self.active_hover_text_color_alpha = active_hover_text_color_alpha
-        self.active_hover_shadow_color = active_hover_shadow_color
-        self.active_hover_shadow_color_alpha = active_hover_shadow_color_alpha
-        self.active_hover_background_color = active_hover_background_color
-        self.active_hover_background_color_alpha = active_hover_background_color_alpha
+
+        self.active_hover_text_color = normalize_color(active_hover_text_color)
+        self.active_hover_shadow_color = normalize_color(active_hover_shadow_color)
+        self.active_hover_background_color = normalize_color(active_hover_background_color)
         if active_hover_underline_color:
-            self.active_hover_underline_color = active_hover_underline_color
+            self.active_hover_underline_color = normalize_color(active_hover_underline_color)
             self.underline = True
         else:
-            self.active_hover_underline_color = active_hover_text_color
-        self.active_hover_underline_color_alpha = active_hover_underline_color_alpha
+            self.active_hover_underline_color = self.active_hover_text_color
         if active_hover_strikethrough_color:
-            self.active_hover_strikethrough_color = active_hover_strikethrough_color
+            self.active_hover_strikethrough_color = normalize_color(active_hover_strikethrough_color)
             self.strikethrough = True
         else:
-            self.active_hover_strikethrough_color = active_hover_text_color
-        self.active_hover_strikethrough_color_alpha = active_hover_strikethrough_color_alpha
-        self.active_hover_border_color = active_hover_border_color
-        self.active_hover_border_color_alpha = active_hover_border_color_alpha
-        self.active_pressed_text_color = active_pressed_text_color
-        self.active_pressed_text_color_alpha = active_pressed_text_color_alpha
-        self.active_pressed_shadow_color = active_pressed_shadow_color
-        self.active_pressed_shadow_color_alpha = active_pressed_shadow_color_alpha
-        self.active_pressed_background_color = active_pressed_background_color
-        self.active_pressed_background_color_alpha = active_pressed_background_color_alpha
+            self.active_hover_strikethrough_color = self.active_hover_text_color
+        self.active_hover_border_color = normalize_color(active_hover_border_color)
+
+        self.active_pressed_text_color = normalize_color(active_pressed_text_color)
+        self.active_pressed_shadow_color = normalize_color(active_pressed_shadow_color)
+        self.active_pressed_background_color = normalize_color(active_pressed_background_color)
         if active_pressed_underline_color:
-            self.active_pressed_underline_color = active_pressed_underline_color
+            self.active_pressed_underline_color = normalize_color(active_pressed_underline_color)
             self.underline = True
         else:
-            self.active_pressed_underline_color = active_pressed_text_color
-        self.active_pressed_underline_color_alpha = active_pressed_underline_color_alpha
+            self.active_pressed_underline_color = self.active_pressed_text_color
         if active_pressed_strikethrough_color:
-            self.active_pressed_strikethrough_color = active_pressed_strikethrough_color
+            self.active_pressed_strikethrough_color = normalize_color(active_pressed_strikethrough_color)
             self.strikethrough = True
         else:
-            self.active_pressed_strikethrough_color = active_pressed_text_color
-        self.active_pressed_strikethrough_color_alpha = active_pressed_strikethrough_color_alpha
-        self.active_pressed_border_color = active_pressed_border_color
-        self.active_pressed_border_color_alpha = active_pressed_border_color_alpha
-        self.active_unpressed_text_color = active_unpressed_text_color
-        self.active_unpressed_text_color_alpha = active_unpressed_text_color_alpha
-        self.active_unpressed_shadow_color = active_unpressed_shadow_color
-        self.active_unpressed_shadow_color_alpha = active_unpressed_shadow_color_alpha
-        self.active_unpressed_background_color = active_unpressed_background_color
-        self.active_unpressed_background_color_alpha = active_unpressed_background_color_alpha
+            self.active_pressed_strikethrough_color = self.active_pressed_text_color
+        self.active_pressed_border_color = normalize_color(active_pressed_border_color)
+
+        self.active_unpressed_text_color = normalize_color(active_unpressed_text_color)
+        self.active_unpressed_shadow_color = normalize_color(active_unpressed_shadow_color)
+        self.active_unpressed_background_color = normalize_color(active_unpressed_background_color)
         if active_unpressed_underline_color:
-            self.active_unpressed_underline_color = active_unpressed_underline_color
+            self.active_unpressed_underline_color = normalize_color(active_unpressed_underline_color)
             self.underline = True
         else:
-            self.active_unpressed_underline_color = active_unpressed_text_color
-        self.active_unpressed_underline_color_alpha = active_unpressed_underline_color_alpha
+            self.active_unpressed_underline_color = self.active_unpressed_text_color
         if active_unpressed_strikethrough_color:
-            self.active_unpressed_strikethrough_color = active_unpressed_strikethrough_color
+            self.active_unpressed_strikethrough_color = normalize_color(active_unpressed_strikethrough_color)
             self.strikethrough = True
         else:
-            self.active_unpressed_strikethrough_color = active_unpressed_text_color
-        self.active_unpressed_strikethrough_color_alpha = active_unpressed_strikethrough_color_alpha
-        self.active_unpressed_border_color = active_unpressed_border_color
-        self.active_unpressed_border_color_alpha = active_unpressed_border_color_alpha
-        self.disabled_hover_text_color = disabled_hover_text_color
-        self.disabled_hover_text_color_alpha = disabled_hover_text_color_alpha
-        self.disabled_hover_shadow_color = disabled_hover_shadow_color
-        self.disabled_hover_shadow_color_alpha = disabled_hover_shadow_color_alpha
-        self.disabled_hover_background_color = disabled_hover_background_color
-        self.disabled_hover_background_color_alpha = disabled_hover_background_color_alpha
+            self.active_unpressed_strikethrough_color = self.active_unpressed_text_color
+        self.active_unpressed_border_color = normalize_color(active_unpressed_border_color)
+
+        self.disabled_hover_text_color = normalize_color(disabled_hover_text_color)
+        self.disabled_hover_shadow_color = normalize_color(disabled_hover_shadow_color)
+        self.disabled_hover_background_color = normalize_color(disabled_hover_background_color)
         if disabled_hover_underline_color:
-            self.disabled_hover_underline_color = disabled_hover_underline_color
+            self.disabled_hover_underline_color = normalize_color(disabled_hover_underline_color)
             self.underline = True
         else:
-            self.disabled_hover_underline_color = disabled_hover_text_color
-        self.disabled_hover_underline_color_alpha = disabled_hover_underline_color_alpha
+            self.disabled_hover_underline_color = self.disabled_hover_text_color
         if disabled_hover_strikethrough_color:
-            self.disabled_hover_strikethrough_color = disabled_hover_strikethrough_color
+            self.disabled_hover_strikethrough_color = normalize_color(disabled_hover_strikethrough_color)
             self.strikethrough = True
         else:
-            self.disabled_hover_strikethrough_color = disabled_hover_text_color
-        self.disabled_hover_strikethrough_color_alpha = disabled_hover_strikethrough_color_alpha
-        self.disabled_hover_border_color = disabled_hover_border_color
-        self.disabled_hover_border_color_alpha = disabled_hover_border_color_alpha
-        self.disabled_unpressed_text_color = disabled_unpressed_text_color
-        self.disabled_unpressed_text_color_alpha = disabled_unpressed_text_color_alpha
-        self.disabled_unpressed_shadow_color = disabled_unpressed_shadow_color
-        self.disabled_unpressed_shadow_color_alpha = disabled_unpressed_shadow_color_alpha
-        self.disabled_unpressed_background_color = disabled_unpressed_background_color
-        self.disabled_unpressed_background_color_alpha = disabled_unpressed_background_color_alpha
+            self.disabled_hover_strikethrough_color = self.disabled_hover_text_color
+        self.disabled_hover_border_color = normalize_color(disabled_hover_border_color)
+
+        self.disabled_unpressed_text_color = normalize_color(disabled_unpressed_text_color)
+        self.disabled_unpressed_shadow_color = normalize_color(disabled_unpressed_shadow_color)
+        self.disabled_unpressed_background_color = normalize_color(disabled_unpressed_background_color)
         if disabled_unpressed_underline_color:
-            self.disabled_unpressed_underline_color = disabled_unpressed_underline_color
+            self.disabled_unpressed_underline_color = normalize_color(disabled_unpressed_underline_color)
             self.underline = True
         else:
-            self.disabled_unpressed_underline_color = disabled_unpressed_text_color
-        self.disabled_unpressed_underline_color_alpha = disabled_unpressed_underline_color_alpha
+            self.disabled_unpressed_underline_color = self.disabled_unpressed_text_color
         if disabled_unpressed_strikethrough_color:
-            self.disabled_unpressed_strikethrough_color = disabled_unpressed_strikethrough_color
+            self.disabled_unpressed_strikethrough_color = normalize_color(disabled_unpressed_strikethrough_color)
             self.strikethrough = True
         else:
-            self.disabled_unpressed_strikethrough_color = disabled_unpressed_text_color
-        self.disabled_unpressed_strikethrough_color_alpha = disabled_unpressed_strikethrough_color_alpha
-        self.disabled_unpressed_border_color = disabled_unpressed_border_color
-        self.disabled_unpressed_border_color_alpha = disabled_unpressed_border_color_alpha
+            self.disabled_unpressed_strikethrough_color = self.disabled_unpressed_text_color
+        self.disabled_unpressed_border_color = normalize_color(disabled_unpressed_border_color)
+
         self.border_thickness = border_thickness
         cursor_input = {
             "active_hover": active_hover_cursor,
@@ -230,9 +176,9 @@ class Label:
             tooltip.configure(layer=self.layer + 1)
             if not tooltip.style:
                 if not self.active_unpressed_background_color:
-                    bg_color = (50, 50, 50)
+                    bg_color = (50, 50, 50, 255)
                 if not self.active_unpressed_border_color:
-                    bd_color = (100, 100, 100)
+                    bd_color = (100, 100, 100, 255)
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_background_color if self.active_unpressed_background_color else bg_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color if self.active_unpressed_border_color else bd_color)
@@ -300,6 +246,7 @@ class Label:
         self.x = x
         self.y = y
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.needs_transform = True
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):
@@ -434,15 +381,18 @@ def update_animation(label):
         label.needs_transform = True
 
 
+def normalize_color(color):
+    if color is None:
+        return (0, 0, 0, 0)
+    if len(color) == 3:
+        return (*color, 255)
+    return color
+
+
 def get_screen_offset(widget):
     if widget.screen:
         return widget.screen.x, widget.screen.y
     return 0, 0
-
-
-def combine_color_with_alpha(rgb, alpha):
-    if not rgb: return None
-    return (*rgb, alpha)
 
 
 def render_base_surface(label, is_hovering):
@@ -454,12 +404,6 @@ def render_base_surface(label, is_hovering):
             underline_color = label.active_pressed_underline_color
             strikethrough_color = label.active_pressed_strikethrough_color
             brd_color = label.active_pressed_border_color
-            text_color_alpha = label.active_pressed_text_color_alpha
-            bg_color_alpha = label.active_pressed_background_color_alpha
-            shadow_color_alpha = label.active_pressed_shadow_color_alpha
-            underline_color_alpha = label.active_pressed_underline_color_alpha
-            strikethrough_color_alpha = label.active_pressed_strikethrough_color_alpha
-            brd_color_alpha = label.active_pressed_border_color_alpha
         elif is_hovering:
             text_color = label.active_hover_text_color
             bg_color = label.active_hover_background_color
@@ -467,12 +411,6 @@ def render_base_surface(label, is_hovering):
             underline_color = label.active_hover_underline_color
             strikethrough_color = label.active_hover_strikethrough_color
             brd_color = label.active_hover_border_color
-            text_color_alpha = label.active_hover_text_color_alpha
-            bg_color_alpha = label.active_hover_background_color_alpha
-            shadow_color_alpha = label.active_hover_shadow_color_alpha
-            underline_color_alpha = label.active_hover_underline_color_alpha
-            strikethrough_color_alpha = label.active_hover_strikethrough_color_alpha
-            brd_color_alpha = label.active_hover_border_color_alpha
         else:
             text_color = label.active_unpressed_text_color
             bg_color = label.active_unpressed_background_color
@@ -480,12 +418,6 @@ def render_base_surface(label, is_hovering):
             underline_color = label.active_unpressed_underline_color
             strikethrough_color = label.active_unpressed_strikethrough_color
             brd_color = label.active_unpressed_border_color
-            text_color_alpha = label.active_unpressed_text_color_alpha
-            bg_color_alpha = label.active_unpressed_background_color_alpha
-            shadow_color_alpha = label.active_unpressed_shadow_color_alpha
-            underline_color_alpha = label.active_unpressed_underline_color_alpha
-            strikethrough_color_alpha = label.active_unpressed_strikethrough_color_alpha
-            brd_color_alpha = label.active_unpressed_border_color_alpha
     else:
         if is_hovering:
             text_color = label.disabled_hover_text_color
@@ -494,12 +426,6 @@ def render_base_surface(label, is_hovering):
             underline_color = label.disabled_hover_underline_color
             strikethrough_color = label.disabled_hover_strikethrough_color
             brd_color = label.disabled_hover_border_color
-            text_color_alpha = label.disabled_hover_text_color_alpha
-            bg_color_alpha = label.disabled_hover_background_color_alpha
-            shadow_color_alpha = label.disabled_hover_shadow_color_alpha
-            underline_color_alpha = label.disabled_hover_underline_color_alpha
-            strikethrough_color_alpha = label.disabled_hover_strikethrough_color_alpha
-            brd_color_alpha = label.disabled_hover_border_color_alpha
         else:
             text_color = label.disabled_unpressed_text_color
             bg_color = label.disabled_unpressed_background_color
@@ -507,19 +433,7 @@ def render_base_surface(label, is_hovering):
             underline_color = label.disabled_unpressed_underline_color
             strikethrough_color = label.disabled_unpressed_strikethrough_color
             brd_color = label.disabled_unpressed_border_color
-            text_color_alpha = label.disabled_unpressed_text_color_alpha
-            bg_color_alpha = label.disabled_unpressed_background_color_alpha
-            shadow_color_alpha = label.disabled_unpressed_shadow_color_alpha
-            underline_color_alpha = label.disabled_unpressed_underline_color_alpha
-            strikethrough_color_alpha = label.disabled_unpressed_strikethrough_color_alpha
-            brd_color_alpha = label.disabled_unpressed_border_color_alpha
 
-    text_color = combine_color_with_alpha(text_color, text_color_alpha)
-    bg_color = combine_color_with_alpha(bg_color, bg_color_alpha)
-    shadow_color = combine_color_with_alpha(shadow_color, shadow_color_alpha)
-    underline_color = combine_color_with_alpha(underline_color, underline_color_alpha)
-    strikethrough_color = combine_color_with_alpha(strikethrough_color, strikethrough_color_alpha)
-    brd_color = combine_color_with_alpha(brd_color, brd_color_alpha)
     if label.auto_size:
         label.font.set_linesize(label.line_spacing)
         lines = str(label.text).split("\n")
@@ -619,9 +533,7 @@ def render_base_surface(label, is_hovering):
             shape_surf.set_alpha(strikethrough_color[3])
             pygame.draw.line(shape_surf, strikethrough_color, start_pos, end_pos, 2)
             label.original_surface.blit(shape_surf, final_text_rect)
-    label.last_visual_state = (label.state, is_hovering, label.pressed, label.text, label.alignment_spacing,
-                               label.alignment, label.line_spacing, label.font, label.auto_size, label.width,
-                               label.height)
+    label.last_visual_state = (is_hovering)
     label.needs_redraw = False
     label.needs_transform = True
 
@@ -634,11 +546,10 @@ def draw(label, surface: pygame.Surface):
     total_offset_y = offset_y + round(label.current_offset[1])
     mouse_pos = pygame.mouse.get_pos()
     is_hovering = is_point_in_rounded_rect(label, mouse_pos)
-    current_visual_state = (label.state, is_hovering, label.pressed, label.text, label.alignment_spacing,
-                            label.alignment, label.line_spacing, label.font, label.auto_size, label.width, label.height)
-    if getattr(label, "last_visual_state", None) != current_visual_state or getattr(label, "needs_redraw", True):
+    current_visual_state = (is_hovering)
+    if label.needs_redraw or current_visual_state != label.last_visual_state:
         render_base_surface(label, is_hovering)
-    if getattr(label, "needs_transform", True) or getattr(label, "surface", None) is None:
+    if label.needs_transform or label.surface is None:
         if label.current_scale != 1 or label.current_rotation != 0:
             new_width = int(label.original_surface.get_width() * label.current_scale)
             new_height = int(label.original_surface.get_height() * label.current_scale)
@@ -657,7 +568,7 @@ def draw(label, surface: pygame.Surface):
         old_center = base_rect.center
         label.rect = label.surface.get_rect()
         label.rect.center = old_center
-        label._needs_transform = False
+        label.needs_transform = False
     draw_rect = label.rect.move(total_offset_x, total_offset_y)
     surface.blit(label.surface, draw_rect)
     if is_hovering:
@@ -699,27 +610,44 @@ def is_point_in_rounded_rect(label, point):
     total_offset_x = offset_x + round(label.current_offset[0])
     total_offset_y = offset_y + round(label.current_offset[1])
     rect = label.rect.move(total_offset_x, total_offset_y)
-    if not rect.collidepoint(point): return False
-    if getattr(label, "current_scale", 1) != 1 or getattr(label, "current_rotation", 0) != 0:
-        return True
-    max_r = max(label.top_left_corner_radius, label.top_right_corner_radius,
-                label.bottom_left_corner_radius, label.bottom_right_corner_radius)
-    if (rect.left + max_r <= point[0] <= rect.right - max_r) or \
-            (rect.top + max_r <= point[1] <= rect.bottom - max_r):
-        return True
+    if not rect.collidepoint(point):
+        return False
     x, y = point
-    if x < rect.left + label.top_left_corner_radius and y < rect.top + label.top_left_corner_radius:
-        cx, cy = rect.left + label.top_left_corner_radius, rect.top + label.top_left_corner_radius
-        return (x - cx) ** 2 + (y - cy) ** 2 <= label.top_left_corner_radius ** 2
-    if x > rect.right - label.top_right_corner_radius and y < rect.top + label.top_right_corner_radius:
-        cx, cy = rect.right - label.top_right_corner_radius, rect.top + label.top_right_corner_radius
-        return (x - cx) ** 2 + (y - cy) ** 2 <= label.top_right_corner_radius ** 2
-    if x < rect.left + label.bottom_left_corner_radius and y > rect.bottom - label.bottom_left_corner_radius:
-        cx, cy = rect.left + label.bottom_left_corner_radius, rect.bottom - label.bottom_left_corner_radius
-        return (x - cx) ** 2 + (y - cy) ** 2 <= label.bottom_left_corner_radius ** 2
-    if x > rect.right - label.bottom_right_corner_radius and y > rect.bottom - label.bottom_right_corner_radius:
-        cx, cy = rect.right - label.bottom_right_corner_radius, rect.bottom - label.bottom_right_corner_radius
-        return (x - cx) ** 2 + (y - cy) ** 2 <= label.bottom_right_corner_radius ** 2
+    geom_rect = rect
+    scale = label.current_scale
+    rotation = label.current_rotation
+    if scale != 1 or rotation != 0:
+        cx, cy = rect.center
+        if rotation != 0:
+            v = pygame.math.Vector2(x - cx, y - cy)
+            v = v.rotate(rotation)
+            x, y = cx + v.x, cy + v.y
+        base_w = label.width * scale
+        base_h = label.height * scale
+        geom_rect = pygame.Rect(0, 0, base_w, base_h)
+        geom_rect.center = (cx, cy)
+        if not geom_rect.collidepoint((x, y)):
+            return False
+    tl_r = label.top_left_corner_radius * scale
+    tr_r = label.top_right_corner_radius * scale
+    bl_r = label.bottom_left_corner_radius * scale
+    br_r = label.bottom_right_corner_radius * scale
+    max_r = max(tl_r, tr_r, bl_r, br_r)
+    if (geom_rect.left + max_r <= x <= geom_rect.right - max_r) or \
+            (geom_rect.top + max_r <= y <= geom_rect.bottom - max_r):
+        return True
+    if x < geom_rect.left + tl_r and y < geom_rect.top + tl_r:
+        cx, cy = geom_rect.left + tl_r, geom_rect.top + tl_r
+        return (x - cx) ** 2 + (y - cy) ** 2 <= tl_r ** 2
+    if x > geom_rect.right - tr_r and y < geom_rect.top + tr_r:
+        cx, cy = geom_rect.right - tr_r, geom_rect.top + tr_r
+        return (x - cx) ** 2 + (y - cy) ** 2 <= tr_r ** 2
+    if x < geom_rect.left + bl_r and y > geom_rect.bottom - bl_r:
+        cx, cy = geom_rect.left + bl_r, geom_rect.bottom - bl_r
+        return (x - cx) ** 2 + (y - cy) ** 2 <= bl_r ** 2
+    if x > geom_rect.right - br_r and y > geom_rect.bottom - br_r:
+        cx, cy = geom_rect.right - br_r, geom_rect.bottom - br_r
+        return (x - cx) ** 2 + (y - cy) ** 2 <= br_r ** 2
     return True
 
 

@@ -10,21 +10,21 @@ class Button:
                  height: int = 80,
                  text: str = "easypygamewidgets Button",
                  state: str | None = None,
-                 active_unpressed_text_color: tuple = (255, 255, 255),
-                 disabled_unpressed_text_color: tuple = (150, 150, 150),
-                 active_hover_text_color: tuple = (255, 255, 255),
-                 disabled_hover_text_color: tuple = (150, 150, 150),
-                 active_pressed_text_color: tuple = (200, 200, 200),
-                 active_unpressed_background_color: tuple = (50, 50, 50),
-                 disabled_unpressed_background_color: tuple = (30, 30, 30),
-                 active_hover_background_color: tuple = (70, 70, 70),
-                 disabled_hover_background_color: tuple = (30, 30, 30),
-                 active_pressed_background_color: tuple = (40, 40, 40),
-                 active_unpressed_border_color: tuple = (100, 100, 100),
-                 disabled_unpressed_border_color: tuple = (60, 60, 60),
-                 active_hover_border_color: tuple = (150, 150, 150),
-                 disabled_hover_border_color: tuple = (60, 60, 60),
-                 active_pressed_border_color: tuple = (50, 50, 50),
+                 active_unpressed_text_color: tuple = (255, 255, 255, 255),
+                 disabled_unpressed_text_color: tuple = (150, 150, 150, 255),
+                 active_hover_text_color: tuple = (255, 255, 255, 255),
+                 disabled_hover_text_color: tuple = (150, 150, 150, 255),
+                 active_pressed_text_color: tuple = (200, 200, 200, 255),
+                 active_unpressed_background_color: tuple = (50, 50, 50, 255),
+                 disabled_unpressed_background_color: tuple = (30, 30, 30, 255),
+                 active_hover_background_color: tuple = (70, 70, 70, 255),
+                 disabled_hover_background_color: tuple = (30, 30, 30, 255),
+                 active_pressed_background_color: tuple = (40, 40, 40, 255),
+                 active_unpressed_border_color: tuple = (100, 100, 100, 255),
+                 disabled_unpressed_border_color: tuple = (60, 60, 60, 255),
+                 active_hover_border_color: tuple = (150, 150, 150, 255),
+                 disabled_hover_border_color: tuple = (60, 60, 60, 255),
+                 active_pressed_border_color: tuple = (50, 50, 50, 255),
                  border_thickness: int = 2,
                  active_hover_cursor: pygame.Cursor = None,
                  disabled_hover_cursor: pygame.Cursor = None,
@@ -48,28 +48,33 @@ class Button:
         self.auto_size = auto_size
         if self.auto_size:
             font.set_linesize(line_spacing)
-            text_w, text_h = font.size(text)
-            self.width = text_w + 40 + (alignment_spacing - 20)
-            self.height = text_h + 20
+            lines = text.split("\n")
+            max_width = 0
+            for line in lines:
+                text_w, text_h = font.size(line)
+                if text_w > max_width:
+                    max_width = text_w
+            self.width = max_width + 40 + (alignment_spacing - 20)
+            self.height = len(lines) * line_spacing + 20
         else:
             self.width = width
             self.height = height
         self.text = text
-        self.active_unpressed_text_color = active_unpressed_text_color
-        self.disabled_unpressed_text_color = disabled_unpressed_text_color
-        self.active_hover_text_color = active_hover_text_color
-        self.disabled_hover_text_color = disabled_hover_text_color
-        self.active_pressed_text_color = active_pressed_text_color
-        self.active_unpressed_background_color = active_unpressed_background_color
-        self.disabled_unpressed_background_color = disabled_unpressed_background_color
-        self.active_hover_background_color = active_hover_background_color
-        self.disabled_hover_background_color = disabled_hover_background_color
-        self.active_pressed_background_color = active_pressed_background_color
-        self.active_unpressed_border_color = active_unpressed_border_color
-        self.disabled_unpressed_border_color = disabled_unpressed_border_color
-        self.active_hover_border_color = active_hover_border_color
-        self.disabled_hover_border_color = disabled_hover_border_color
-        self.active_pressed_border_color = active_pressed_border_color
+        self.active_unpressed_text_color = normalize_color(active_unpressed_text_color)
+        self.disabled_unpressed_text_color = normalize_color(disabled_unpressed_text_color)
+        self.active_hover_text_color = normalize_color(active_hover_text_color)
+        self.disabled_hover_text_color = normalize_color(disabled_hover_text_color)
+        self.active_pressed_text_color = normalize_color(active_pressed_text_color)
+        self.active_unpressed_background_color = normalize_color(active_unpressed_background_color)
+        self.disabled_unpressed_background_color = normalize_color(disabled_unpressed_background_color)
+        self.active_hover_background_color = normalize_color(active_hover_background_color)
+        self.disabled_hover_background_color = normalize_color(disabled_hover_background_color)
+        self.active_pressed_background_color = normalize_color(active_pressed_background_color)
+        self.active_unpressed_border_color = normalize_color(active_unpressed_border_color)
+        self.disabled_unpressed_border_color = normalize_color(disabled_unpressed_border_color)
+        self.active_hover_border_color = normalize_color(active_hover_border_color)
+        self.disabled_hover_border_color = normalize_color(disabled_hover_border_color)
+        self.active_pressed_border_color = normalize_color(active_pressed_border_color)
         self.border_thickness = border_thickness
         cursor_input = {
             "active_hover": active_hover_cursor,
@@ -108,6 +113,23 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
         self.scheduled_functions = []
+        self.is_hovered = False
+        self.last_visual_state = None
+        self.needs_redraw = True
+        self.cached_surface = None
+        self.needs_transform = True
+        self.original_surface = pygame.Surface((1, 1))
+        self.surface = pygame.Surface((1, 1))
+        self.target_scale = 1
+        self.current_scale = 1
+        self.scale_step = 0
+        self.target_rotation = 0
+        self.current_rotation = 0
+        self.rotation_step = 0
+        self.target_offset = (0, 0)
+        self.current_offset = [0, 0]
+        self.offset_step = [0, 0]
+        self.use_rotozoom = False
 
         self.font.set_linesize(line_spacing)
 
@@ -116,7 +138,19 @@ class Button:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+        self.needs_redraw = True
+        self.needs_transform = True
         if any(k in kwargs for k in ('x', 'y', 'width', 'height', 'text', 'font')):
+            if self.auto_size:
+                self.font.set_linesize(self.line_spacing)
+                lines = self.text.split("\n")
+                max_width = 0
+                for line in lines:
+                    text_w, text_h = self.font.size(line)
+                    if text_w > max_width:
+                        max_width = text_w
+                self.width = max_width + 40 + (self.alignment_spacing - 20)
+                self.height = len(lines) * self.line_spacing + 20
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -140,6 +174,7 @@ class Button:
         self.x = x
         self.y = y
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.needs_transform = True
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):
@@ -186,11 +221,85 @@ class Button:
             self.tooltip = None
         return self
 
+    def scale(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_scale = 1
+        else:
+            self.target_scale = value
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        return self
+
+    def rotate(self, value=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_rotation = 0
+        else:
+            self.target_rotation = value
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        return self
+
+    def rotozoom(self, scale=None, rotation=None, frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        self.target_scale = 1 if scale is None else scale
+        self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        self.target_rotation = 0 if rotation is None else rotation
+        self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        self.use_rotozoom = True
+        return self
+
+    def offset(self, value: tuple[int, int], frames_to_finish=1):
+        if frames_to_finish <= 0:
+            frames_to_finish = 1
+        if value is None:
+            self.target_offset = (0, 0)
+        else:
+            self.target_offset = value
+        self.offset_step[0] = (self.target_offset[0] - self.current_offset[0]) / frames_to_finish
+        self.offset_step[1] = (self.target_offset[1] - self.current_offset[1]) / frames_to_finish
+        return self
+
     def schedule(self, function, frames_to_execute):
         if frames_to_execute < 1:
             frames_to_execute = 1
         self.scheduled_functions.append([function, frames_to_execute])
         return self
+
+
+def update_animation(button):
+    scale_changed = False
+    rotation_changed = False
+    if button.current_scale != button.target_scale:
+        if abs(button.current_scale - button.target_scale) <= abs(button.scale_step):
+            button.current_scale = button.target_scale
+        else:
+            button.current_scale += button.scale_step
+        scale_changed = True
+    if button.current_rotation != button.target_rotation:
+        if abs(button.current_rotation - button.target_rotation) <= abs(button.rotation_step):
+            button.current_rotation = button.target_rotation
+        else:
+            button.current_rotation += button.rotation_step
+        rotation_changed = True
+    for x in range(2):
+        if button.current_offset[x] != button.target_offset[x]:
+            if abs(button.current_offset[x] - button.target_offset[x]) <= abs(button.offset_step[x]):
+                button.current_offset[x] = float(button.target_offset[x])
+            else:
+                button.current_offset[x] += button.offset_step[x]
+    if scale_changed or rotation_changed:
+        button.needs_transform = True
+
+
+def normalize_color(color):
+    if color is None:
+        return (0, 0, 0, 0)
+    if len(color) == 3:
+        return (*color, 255)
+    return color
 
 
 def get_screen_offset(widget):
@@ -199,11 +308,7 @@ def get_screen_offset(widget):
     return 0, 0
 
 
-def draw(button, surface: pygame.Surface):
-    if not button.alive or not button.visible:
-        return
-    mouse_pos = pygame.mouse.get_pos()
-    is_hovering = is_point_in_rounded_rect(button, mouse_pos)
+def render_button_surface(button, is_hovering):
     if button.state == "enabled":
         if button.pressed and is_hovering:
             text_color = button.active_pressed_text_color
@@ -227,6 +332,85 @@ def draw(button, surface: pygame.Surface):
             bg_color = button.disabled_unpressed_background_color
             brd_color = button.disabled_unpressed_border_color
 
+    cached = pygame.Surface((button.width, button.height), pygame.SRCALPHA)
+    local_rect = pygame.Rect(0, 0, button.width, button.height)
+    pygame.draw.rect(cached, bg_color, local_rect, border_radius=button.corner_radius)
+    if brd_color:
+        pygame.draw.rect(cached, brd_color, local_rect, width=button.border_thickness,
+                         border_radius=button.corner_radius)
+
+    if button.alignment == "stretched" and len(button.text) > 1 and not button.auto_size:
+        total_char_width = sum(button.font.render(char, True, text_color).get_width() for char in button.text)
+        available_width = local_rect.width - (button.alignment_spacing * 2)
+        if available_width > total_char_width:
+            spacing = (available_width - total_char_width) / (len(button.text) - 1)
+            current_x = local_rect.left + button.alignment_spacing
+            for char in button.text:
+                char_surf = button.font.render(char, True, text_color)
+                char_surf.set_alpha(text_color[3])
+                cached.blit(char_surf, char_surf.get_rect(midleft=(current_x, local_rect.centery)))
+                current_x += char_surf.get_width() + spacing
+        else:
+            text_surf = button.font.render(button.text, True, text_color)
+            text_surf.set_alpha(text_color[3])
+            cached.blit(text_surf, text_surf.get_rect(center=local_rect.center))
+    else:
+        lines = button.text.split("\n")
+        total_text_height = len(lines) * button.line_spacing
+        start_y = local_rect.centery - (total_text_height // 2)
+        for i, line in enumerate(lines):
+            text_surf = button.font.render(line, True, text_color)
+            text_surf.set_alpha(text_color[3])
+            text_rect = text_surf.get_rect()
+            line_centery = start_y + (i * button.line_spacing) + (button.line_spacing // 2)
+            if button.alignment == "left":
+                text_rect.midleft = (local_rect.left + button.alignment_spacing, line_centery)
+            elif button.alignment == "right":
+                text_rect.midright = (local_rect.right - button.alignment_spacing, line_centery)
+            else:
+                text_rect.center = (local_rect.centerx, line_centery)
+            cached.blit(text_surf, text_rect)
+    button.cached_surface = cached
+    button.original_surface = cached
+
+
+def draw(button, surface: pygame.Surface):
+    if not button.alive or not button.visible:
+        return
+    mouse_pos = pygame.mouse.get_pos()
+    is_hovering = is_point_in_rounded_rect(button, mouse_pos)
+    current_visual_state = (button.pressed, is_hovering)
+    if button.needs_redraw or button.last_visual_state != current_visual_state:
+        render_button_surface(button, is_hovering)
+        button.last_visual_state = current_visual_state
+        button.needs_redraw = False
+        button.needs_transform = True
+
+    if button.needs_transform or button.surface is None:
+        if button.current_scale != 1 or button.current_rotation != 0:
+            new_width = int(button.original_surface.get_width() * button.current_scale)
+            new_height = int(button.original_surface.get_height() * button.current_scale)
+            if new_width > 0 and new_height > 0:
+                if button.use_rotozoom:
+                    button.surface = pygame.transform.rotozoom(button.original_surface, button.current_rotation,
+                                                               button.current_scale)
+                else:
+                    scaled_surface = pygame.transform.smoothscale(button.original_surface, (new_width, new_height))
+                    button.surface = pygame.transform.rotate(scaled_surface, button.current_rotation)
+            else:
+                button.surface = pygame.Surface((0, 0), pygame.SRCALPHA)
+        else:
+            button.surface = button.original_surface.copy()
+        old_center = button.rect.center
+        button.rect = button.surface.get_rect()
+        button.rect.center = old_center
+        button.needs_transform = False
+    offset_x, offset_y = get_screen_offset(button)
+    total_offset_x = offset_x + round(button.current_offset[0])
+    total_offset_y = offset_y + round(button.current_offset[1])
+    draw_rect = button.rect.move(total_offset_x, total_offset_y)
+    surface.blit(button.surface, draw_rect)
+
     if is_hovering:
         if button.state == "enabled":
             if button.pressed:
@@ -247,71 +431,64 @@ def draw(button, surface: pygame.Surface):
             pygame.mouse.set_cursor(button.original_cursor)
             button.original_cursor = None
 
-    if is_hovering and not getattr(button, "is_hovered", False):
+    if is_hovering and not button.is_hovered:
         button.is_hovered = True
         button.trigger_event("<MOUSE-IN>")
         if button.tooltip:
             button.tooltip.show()
-    elif is_hovering and getattr(button, "is_hovered", False):
+    elif is_hovering and button.is_hovered:
         button.is_hovered = True
         button.trigger_event("<HOVER>")
-    elif not is_hovering and getattr(button, "is_hovered", False):
+    elif not is_hovering and button.is_hovered:
         button.is_hovered = False
         button.trigger_event("<MOUSE-OUT>")
         if button.tooltip:
             button.tooltip.hide()
 
-    offset_x, offset_y = get_screen_offset(button)
-    draw_rect = button.rect.move(offset_x, offset_y)
-
-    pygame.draw.rect(surface, bg_color, draw_rect, border_radius=button.corner_radius)
-    if brd_color:
-        pygame.draw.rect(surface, brd_color, draw_rect, width=button.border_thickness,
-                         border_radius=button.corner_radius)
-    if button.alignment == "stretched" and len(button.text) > 1 and not button.auto_size:
-        total_char_width = sum(button.font.render(char, True, text_color).get_width() for char in button.text)
-        available_width = draw_rect.width - (button.alignment_spacing * 2)
-        if available_width > total_char_width:
-            spacing = (available_width - total_char_width) / (len(button.text) - 1)
-            current_x = draw_rect.left + button.alignment_spacing
-            for char in button.text:
-                char_surf = button.font.render(char, True, text_color)
-                surface.blit(char_surf, char_surf.get_rect(midleft=(current_x, draw_rect.centery)))
-                current_x += char_surf.get_width() + spacing
-        else:
-            text_surf = button.font.render(button.text, True, text_color)
-            surface.blit(text_surf, text_surf.get_rect(center=draw_rect.center))
-    else:
-        text_surf = button.font.render(button.text, True, text_color)
-        text_rect = text_surf.get_rect()
-        if button.alignment == "left":
-            text_rect.midleft = (draw_rect.left + button.alignment_spacing, draw_rect.centery)
-        elif button.alignment == "right":
-            text_rect.midright = (draw_rect.right - button.alignment_spacing, draw_rect.centery)
-        else:
-            text_rect.center = draw_rect.center
-        surface.blit(text_surf, text_rect)
-
 
 def is_point_in_rounded_rect(button, point):
     offset_x, offset_y = get_screen_offset(button)
-    rect = button.rect.move(offset_x, offset_y)
-    if not rect.collidepoint(point): return False
-    r = button.corner_radius
-    r = min(r, rect.width // 2, rect.height // 2)
-    if r <= 0: return True
+    total_offset_x = offset_x + round(button.current_offset[0])
+    total_offset_y = offset_y + round(button.current_offset[1])
+    rect = button.rect.move(total_offset_x, total_offset_y)
+    if not rect.collidepoint(point):
+        return False
     x, y = point
-    if (rect.left + r <= x <= rect.right - r) or (rect.top + r <= y <= rect.bottom - r):
+    geom_rect = rect
+    scale = button.current_scale
+    rotation = button.current_rotation
+    if scale != 1 or rotation != 0:
+        cx, cy = rect.center
+        if rotation != 0:
+            v = pygame.math.Vector2(x - cx, y - cy)
+            v = v.rotate(rotation)
+            x, y = cx + v.x, cy + v.y
+        base_w = button.width * scale
+        base_h = button.height * scale
+        geom_rect = pygame.Rect(0, 0, base_w, base_h)
+        geom_rect.center = (cx, cy)
+        if not geom_rect.collidepoint((x, y)):
+            return False
+    r = button.corner_radius * scale
+    r = min(r, geom_rect.width // 2, geom_rect.height // 2)
+    if r <= 0:
         return True
-    centers = [(rect.left + r, rect.top + r), (rect.right - r, rect.top + r),
-               (rect.left + r, rect.bottom - r), (rect.right - r, rect.bottom - r)]
+    if (geom_rect.left + r <= x <= geom_rect.right - r) or (geom_rect.top + r <= y <= geom_rect.bottom - r):
+        return True
+    centers = [
+        (geom_rect.left + r, geom_rect.top + r),
+        (geom_rect.right - r, geom_rect.top + r),
+        (geom_rect.left + r, geom_rect.bottom - r),
+        (geom_rect.right - r, geom_rect.bottom - r)
+    ]
     for cx, cy in centers:
-        if ((x - cx) ** 2 + (y - cy) ** 2) <= r ** 2: return True
+        if ((x - cx) ** 2 + (y - cy) ** 2) <= r ** 2:
+            return True
     return False
 
 
 def react(button, event=None):
-    for func in button.scheduled_functions:
+    for func in button.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()
@@ -322,15 +499,14 @@ def react(button, event=None):
     mouse_pos = pygame.mouse.get_pos()
     is_inside = is_point_in_rounded_rect(button, mouse_pos)
     if not event:
-        if pygame.mouse.get_pressed()[0] and is_inside:
-            button.pressed = True
+        if pygame.mouse.get_pressed()[0]:
             button.trigger_event("<HOLD>")
-        elif not pygame.mouse.get_pressed()[0] and is_inside:
+            if is_inside:
+                button.pressed = True
+        elif not pygame.mouse.get_pressed()[0]:
             if button.pressed:
-                button.pressed = False
                 button.trigger_event("<RELEASE>")
-        elif not pygame.mouse.get_pressed()[0] and not is_inside:
-            button.pressed = False
+                button.pressed = False
     else:
         if event.type == pygame.KEYDOWN:
             button.trigger_event("<KEY>")
@@ -339,11 +515,11 @@ def react(button, event=None):
             keyname = pygame.key.name(event.key)
             button.trigger_event(f"<{keyname.upper()}>")
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and is_inside:
+            if event.button == 1:
                 button.trigger_event("<PRESS>")
-                button.pressed = True
+                if is_inside:
+                    button.pressed = True
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                if is_inside and button.pressed:
-                    button.trigger_event("<RELEASE>")
+                button.trigger_event("<RELEASE>")
                 button.pressed = False
