@@ -50,7 +50,7 @@ class Label:
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
-                 max_width: int | None = None, data=None):
+                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None, data=None):
         font.set_linesize(line_spacing)
         lines = str(text).split("\n")
         max_w = max((font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)
@@ -66,14 +66,16 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            if min_width or max_width:
-                if min_width:
-                    self.width = max(max_w + 40 + (alignment_spacing - 20), min_width)
-                if max_width:
-                    self.width = min(max_w + 40 + (alignment_spacing - 20), max_width)
-            else:
-                self.width = max_w + 40 + (alignment_spacing - 20)
+            self.width = max_w + 40 + (alignment_spacing - 20)
+            if min_width:
+                self.width = max(max_w + 40 + (alignment_spacing - 20), min_width)
+            if max_width:
+                self.width = min(max_w + 40 + (alignment_spacing - 20), max_width)
             self.height = total_h + 20
+            if min_height:
+                self.height = max(total_h + 20, min_height)
+            if max_height:
+                self.height = min(total_h + 20, max_height)
         else:
             self.width = width + alignment_spacing
             self.height = height
@@ -192,6 +194,8 @@ class Label:
         self.line_spacing = line_spacing
         self.min_width = min_width
         self.max_width = max_width
+        self.min_height = min_height
+        self.max_height = max_height
         self.data = data
         self.x = 0
         self.y = 0
@@ -226,27 +230,32 @@ class Label:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.needs_redraw = True
-        layout_keys = ('x', 'y', 'width', 'height', 'text', 'line_spacing', 'font', 'alignment_spacing', 'auto_size')
+        layout_keys = ('auto_size', 'x', 'y', 'width', 'height', 'text', 'line_spacing', 'font', 'alignment_spacing',
+                       'max_width', 'min_width', 'max_height', 'min_height')
         if any(k in kwargs for k in layout_keys):
             self.font.set_linesize(self.line_spacing)
             lines = str(self.text).split("\n")
             max_w = max((self.font.render(line, True, (255, 255, 255)).get_width() for line in lines),
                         default=0) + self.alignment_spacing
-            tot_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
+            total_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
-                if self.min_width or self.max_width:
-                    if self.min_width:
-                        self.width = max(max_w + 40 + (self.alignment_spacing - 20), self.min_width)
-                    if self.max_width:
-                        self.width = min(max_w + 40 + (self.alignment_spacing - 20), self.max_width)
-                else:
-                    self.width = max_w + 40 + (self.alignment_spacing - 20)
-                self.height = tot_h + 20
+                self.width = max_w + 40 + (self.alignment_spacing - 20)
+                if self.min_width:
+                    self.width = max(max_w + 40 + (self.alignment_spacing - 20), self.min_width)
+                if self.max_width:
+                    self.width = min(max_w + 40 + (self.alignment_spacing - 20), self.max_width)
+                self.height = total_h + 20
+                if self.min_height:
+                    self.height = max(total_h + 20, self.min_height)
+                if self.max_height:
+                    self.height = min(total_h + 20, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
             misc.resort_layers()
+        if 'line_spacing' in kwargs:
+            self.font.set_linesize(self.line_spacing)
         return self
 
     def config(self, **kwargs):
@@ -453,15 +462,17 @@ def render_base_surface(label, is_hovering):
         label.font.set_linesize(label.line_spacing)
         lines = str(label.text).split("\n")
         max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
-        tot_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
-        if label.min_width or label.max_width:
-            if label.min_width:
-                label.width = max(max_w + 40 + (label.alignment_spacing - 20), label.min_width)
-            if label.max_width:
-                label.width = min(max_w + 40 + (label.alignment_spacing - 20), label.max_width)
-        else:
-            label.width = max_w + 40 + (label.alignment_spacing - 20)
-        label.height = tot_h + 20
+        total_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
+        label.width = max_w + 40 + (label.alignment_spacing - 20)
+        if label.min_width:
+            label.width = max(max_w + 40 + (label.alignment_spacing - 20), label.min_width)
+        if label.max_width:
+            label.width = min(max_w + 40 + (label.alignment_spacing - 20), label.max_width)
+        label.height = total_h + 20
+        if label.min_height:
+            label.height = max(total_h + 20, label.min_height)
+        if label.max_height:
+            label.height = min(total_h + 20, label.max_height)
         label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
     label.original_surface = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
     draw_req_rect = pygame.Rect(0, 0, label.width, label.height)

@@ -22,7 +22,8 @@ class Tooltip:
                  font: pygame.font.Font = font.tooltip_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 25, layer=1000, style: str | None = None,
                  suppress_icon=False, icon: "pygame.Surface | easypygamewidgets.Surface | None" = None,
-                 line_spacing: int = 30,
+                 line_spacing: int = 30, min_width: int | None = None, max_width: int | None = None,
+                 min_height: int | None = None, max_height: int | None = None,
                  data=None):
         self.bindings = {}
         self.style = style
@@ -37,6 +38,15 @@ class Tooltip:
         self.auto_size = auto_size
         self.width = width
         self.height = height
+        if auto_size:
+            if min_width:
+                self.width = max(width, min_width)
+            if max_width:
+                self.width = min(width, max_width)
+            if min_height:
+                self.height = max(height, min_height)
+            if max_height:
+                self.height = min(height, max_height)
         self.text = text
         self.border_thickness = border_thickness
         if style == "info":
@@ -90,6 +100,10 @@ class Tooltip:
         if icon:
             self.icon = icon
         self.line_spacing = line_spacing
+        self.min_width = min_width
+        self.max_width = max_width
+        self.min_height = min_height
+        self.max_height = max_height
         self.data = data
         self.x = 0
         self.y = 0
@@ -109,7 +123,17 @@ class Tooltip:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.needs_redraw = True
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
+        if any(k in kwargs for k in
+               ('auto_size', 'x', 'y', 'width', 'height', 'min_width', 'max_width', 'min_height', 'max_height')):
+            if self.auto_size:
+                if self.min_width:
+                    self.width = max(self.width, self.min_width)
+                if self.max_width:
+                    self.width = min(self.width, self.max_width)
+                if self.min_height:
+                    self.height = max(self.height, self.min_height)
+                if self.max_height:
+                    self.height = min(self.height, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'widget' in kwargs:
             kwargs["widget"].set_tooltip(self)
@@ -186,6 +210,14 @@ def render_tooltip_surface(tooltip):
         tooltip.height = temp_surf.get_height() + 20
         icon_offset = tooltip.height if tooltip.icon and not tooltip.suppress_icon else 0
         tooltip.width = temp_surf.get_width() + (tooltip.alignment_spacing * 2) + icon_offset
+        if tooltip.min_width:
+            tooltip.width = max(tooltip.width, tooltip.min_width)
+        if tooltip.max_width:
+            tooltip.width = min(tooltip.width, tooltip.max_width)
+        if tooltip.min_height:
+            tooltip.height = max(tooltip.height, tooltip.min_height)
+        if tooltip.max_height:
+            tooltip.height = min(tooltip.height, tooltip.max_height)
         tooltip.rect = pygame.Rect(tooltip.x, tooltip.y, tooltip.width, tooltip.height)
     cached = pygame.Surface((tooltip.width, tooltip.height), pygame.SRCALPHA)
     local_rect = pygame.Rect(0, 0, tooltip.width, tooltip.height)

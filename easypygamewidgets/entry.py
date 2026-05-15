@@ -37,7 +37,8 @@ class Entry:
                  font: pygame.font.Font = font.default_font, alignment: str = "left",
                  alignment_spacing: int = 20, corner_radius: int = 25, repeat_delay: int = 500,
                  repeat_interval: int = 50, layer=1000, line_spacing: int = 30,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
+                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None, data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -52,7 +53,16 @@ class Entry:
                 self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
-        self.height = height
+        if auto_size:
+            if max_width:
+                self.width = min(self.width, max_width)
+            if min_width:
+                self.width = max(self.width, min_width)
+            self.height = height
+            if max_height:
+                self.height = min(self.height, max_height)
+            if min_height:
+                self.height = max(self.height, min_height)
         self.placeholder_text = placeholder_text
         self.text = text
         self.char_limit = char_limit
@@ -105,6 +115,10 @@ class Entry:
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
+        self.max_width = max_width
+        self.min_width = min_width
+        self.max_height = max_height
+        self.min_height = min_height
         self.data = data
         self.x = 0
         self.y = 0
@@ -136,7 +150,16 @@ class Entry:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs or 'height' in kwargs:
+        if any(k in kwargs for k in
+               ('auto_size', 'x', 'y', 'width', 'height', 'max_width', 'min_width', 'max_height', 'min_height')):
+            if self.max_width:
+                self.width = min(self.width, self.max_width)
+            if self.min_width:
+                self.width = max(self.width, self.min_width)
+            if self.max_height:
+                self.height = min(self.height, self.max_height)
+            if self.min_height:
+                self.height = max(self.height, self.min_height)
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -429,6 +452,14 @@ def draw(entry, surface: pygame.Surface):
         actual_height = max(text_h, entry.line_spacing)
         required_width = max(entry.width, text_w + (entry.alignment_spacing * 2) + 10)
         required_height = max(entry.height, actual_height + (entry.alignment_spacing * 2) + 10)
+        if entry.max_width:
+            required_width = min(required_width, entry.max_width)
+        if entry.min_width:
+            required_width = max(required_width, entry.min_width)
+        if entry.max_height:
+            required_height = min(required_height, entry.max_height)
+        if entry.min_height:
+            required_height = max(required_height, entry.min_height)
         if entry.rect.width != required_width:
             entry.rect.width = required_width
         if entry.rect.height != required_height:

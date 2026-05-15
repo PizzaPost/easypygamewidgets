@@ -38,7 +38,8 @@ class Timekeeper:
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
                  type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
+                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None,
                  data=None):
         if screen:
             screen.add_widget(self)
@@ -55,6 +56,15 @@ class Timekeeper:
         self.auto_size = auto_size
         self.width = width
         self.height = height
+        if auto_size:
+            if min_width:
+                self.width = max(width, min_width)
+            if max_width:
+                self.width = min(width, max_width)
+            if min_height:
+                self.height = max(height, min_height)
+            if max_height:
+                self.height = min(height, max_height)
         self.start_at = start_at
         self.end_at = end_at
         self.show_milliseconds = show_milliseconds
@@ -108,6 +118,10 @@ class Timekeeper:
                 tooltip.configure(active_unpressed_text_color=self.active_unpressed_text_color,
                                   active_unpressed_background_color=self.active_unpressed_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
+        self.min_width = min_width
+        self.max_width = max_width
+        self.min_height = min_height
+        self.max_height = max_height
         self.data = data
         self.x = 0
         self.y = 0
@@ -128,7 +142,17 @@ class Timekeeper:
         for key, value in kwargs.items():
             setattr(self, key, value)
         update_size(self)
-        if any(k in kwargs for k in ('x', 'y', 'width', 'height')):
+        if any(k in kwargs for k in
+               ('auto_size', 'x', 'y', 'width', 'height', 'min_width', 'max_width', 'min_height', 'max_height')):
+            if self.auto_size:
+                if self.min_width:
+                    self.width = max(self.width, self.min_width)
+                if self.max_width:
+                    self.width = min(self.width, self.max_width)
+                if self.min_height:
+                    self.height = max(self.height, self.min_height)
+                if self.max_height:
+                    self.height = min(self.height, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -274,6 +298,14 @@ def update_size(timekeeper):
         extra_w = text_w + (timekeeper.alignment_spacing * 2)
         timekeeper.width = (extra_w + 39) // 40 * 40
         timekeeper.height = (timekeeper.font.size(display_text)[1] + 39) // 40 * 40
+        if timekeeper.min_width:
+            timekeeper.width = max(timekeeper.width, timekeeper.min_width)
+        if timekeeper.max_width:
+            timekeeper.width = min(timekeeper.width, timekeeper.max_width)
+        if timekeeper.min_height:
+            timekeeper.height = max(timekeeper.height, timekeeper.min_height)
+        if timekeeper.max_height:
+            timekeeper.height = min(timekeeper.height, timekeeper.max_height)
         timekeeper.rect = pygame.Rect(timekeeper.x, timekeeper.y, timekeeper.width, timekeeper.height)
 
 

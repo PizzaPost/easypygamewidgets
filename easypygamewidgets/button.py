@@ -31,7 +31,8 @@ class Button:
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  command=None, alignment_spacing: int = 20, corner_radius: int = 20, layer=1000, line_spacing: int = 30,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
+                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None, data=None):
         self.bindings = {}
         if screen:
             screen.add_widget(self)
@@ -49,13 +50,22 @@ class Button:
         if self.auto_size:
             font.set_linesize(line_spacing)
             lines = text.split("\n")
-            max_width = 0
+            total_w = 0
             for line in lines:
                 text_w, text_h = font.size(line)
-                if text_w > max_width:
-                    max_width = text_w
-            self.width = max_width + 40 + (alignment_spacing - 20)
-            self.height = len(lines) * line_spacing + 20
+                if text_w > total_w:
+                    total_w = text_w
+            total_h = len(lines) * line_spacing
+            self.width = total_w + 40 + (alignment_spacing - 20)
+            if min_width:
+                self.width = max(self.width, min_width)
+            if max_width:
+                self.width = min(self.width, max_width)
+            self.height = total_h + 20
+            if min_height:
+                self.height = max(self.height, min_height)
+            if max_height:
+                self.height = min(self.height, max_height)
         else:
             self.width = width
             self.height = height
@@ -105,6 +115,10 @@ class Button:
                                   active_unpressed_background_color=self.active_unpressed_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
         self.line_spacing = line_spacing
+        self.min_width = min_width
+        self.max_width = max_width
+        self.min_height = min_height
+        self.max_height = max_height
         self.data = data
         self.x = 0
         self.y = 0
@@ -140,17 +154,28 @@ class Button:
             setattr(self, key, value)
         self.needs_redraw = True
         self.needs_transform = True
-        if any(k in kwargs for k in ('x', 'y', 'width', 'height', 'text', 'font')):
+        if any(k in kwargs for k in
+               ('auto_size', 'x', 'y', 'width', 'height', 'text', 'font', 'max_width', 'min_width', 'max_height',
+                'min_height')):
             if self.auto_size:
                 self.font.set_linesize(self.line_spacing)
                 lines = self.text.split("\n")
-                max_width = 0
+                total_w = 0
                 for line in lines:
                     text_w, text_h = self.font.size(line)
-                    if text_w > max_width:
-                        max_width = text_w
-                self.width = max_width + 40 + (self.alignment_spacing - 20)
-                self.height = len(lines) * self.line_spacing + 20
+                    if text_w > total_w:
+                        total_w = text_w
+                total_h = len(lines) * self.line_spacing
+                self.width = total_w + 40 + (self.alignment_spacing - 20)
+                if self.min_width:
+                    self.width = max(total_w, self.min_width)
+                if self.max_width:
+                    self.width = min(total_w, self.max_width)
+                self.height = total_h + 20
+                if self.min_height:
+                    self.height = max(total_h + 20, self.min_height)
+                if self.max_height:
+                    self.height = min(total_h + 20, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])

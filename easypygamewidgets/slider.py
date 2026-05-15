@@ -59,7 +59,8 @@ class Slider:
                  show_value_when_disabled: bool = False, round_display_value: int = 0,
                  show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, line_spacing: int = 30,
-                 data=None):
+                 min_width: int | None = None, max_width: int | None = None, min_height: int | None = None,
+                 max_height: int | None = None, data=None):
         if screen:
             screen.add_widget(self)
             self.screen = screen
@@ -75,6 +76,15 @@ class Slider:
         self.auto_size = auto_size
         self.width = width
         self.height = height
+        if auto_size:
+            if min_width:
+                self.width = max(width, min_width)
+            if max_width:
+                self.width = min(width, max_width)
+            if min_height:
+                self.height = max(height, min_height)
+            if max_height:
+                self.height = min(height, max_height)
         self.text = text
         self.start = start
         self.end = end
@@ -158,6 +168,10 @@ class Slider:
                                   active_unpressed_background_color=self.active_unpressed_used_background_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color)
         self.line_spacing = line_spacing
+        self.min_width = min_width
+        self.max_width = max_width
+        self.min_height = min_height
+        self.max_height = max_height
         self.data = data
         self.x = 0
         self.y = font.render(text, True, (255, 255, 255)).get_height()
@@ -178,8 +192,18 @@ class Slider:
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'x' in kwargs or 'y' in kwargs or 'width' in kwargs:
-            self.rect = pygame.Rect(self.x, self.y, self.width, 60)
+        if any(k in kwargs for k in
+               ('auto_size', 'x', 'y', 'width', 'height', 'min_width', 'max_width', 'min_height', 'max_height')):
+            if self.auto_size:
+                if self.min_width:
+                    self.width = max(self.width, self.min_width)
+                if self.max_width:
+                    self.width = min(self.width, self.max_width)
+                if self.min_height:
+                    self.height = max(self.height, self.min_height)
+                if self.max_height:
+                    self.height = min(self.height, self.max_height)
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -349,6 +373,14 @@ def draw(slider, surface: pygame.Surface):
     temp_surf = slider.font.render(slider.text, True, text_color)
     if slider.auto_size:
         slider.width = temp_surf.get_width() + 40 + (slider.alignment_spacing - 20)
+        if slider.min_width:
+            slider.width = max(slider.width, slider.min_width)
+        if slider.max_width:
+            slider.width = min(slider.width, slider.max_width)
+        if slider.min_height:
+            slider.height = max(slider.height, slider.min_height)
+        if slider.max_height:
+            slider.height = min(slider.height, slider.max_height)
         slider.rect = pygame.Rect(slider.x, slider.y, slider.width, slider.height)
 
     offset_x, offset_y = get_screen_offset(slider)
