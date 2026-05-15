@@ -49,7 +49,8 @@ class Label:
                  alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
+                 max_width: int | None = None, data=None):
         font.set_linesize(line_spacing)
         lines = str(text).split("\n")
         max_w = max((font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)
@@ -65,7 +66,13 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            self.width = max_w + 40 + (alignment_spacing - 20)
+            if min_width or max_width:
+                if min_width:
+                    self.width = max(max_w + 40 + (alignment_spacing - 20), min_width)
+                if max_width:
+                    self.width = min(max_w + 40 + (alignment_spacing - 20), max_width)
+            else:
+                self.width = max_w + 40 + (alignment_spacing - 20)
             self.height = total_h + 20
         else:
             self.width = width + alignment_spacing
@@ -183,6 +190,8 @@ class Label:
                                   active_unpressed_background_color=self.active_unpressed_background_color if self.active_unpressed_background_color else bg_color,
                                   active_unpressed_border_color=self.active_unpressed_border_color if self.active_unpressed_border_color else bd_color)
         self.line_spacing = line_spacing
+        self.min_width = min_width
+        self.max_width = max_width
         self.data = data
         self.x = 0
         self.y = 0
@@ -225,7 +234,13 @@ class Label:
                         default=0) + self.alignment_spacing
             tot_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
-                self.width = max_w + 40 + (self.alignment_spacing - 20)
+                if self.min_width or self.max_width:
+                    if self.min_width:
+                        self.width = max(max_w + 40 + (self.alignment_spacing - 20), self.min_width)
+                    if self.max_width:
+                        self.width = min(max_w + 40 + (self.alignment_spacing - 20), self.max_width)
+                else:
+                    self.width = max_w + 40 + (self.alignment_spacing - 20)
                 self.height = tot_h + 20
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'screen' in kwargs:
@@ -439,7 +454,13 @@ def render_base_surface(label, is_hovering):
         lines = str(label.text).split("\n")
         max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
         tot_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
-        label.width = max_w + 40 + (label.alignment_spacing - 20)
+        if label.min_width or label.max_width:
+            if label.min_width:
+                label.width = max(max_w + 40 + (label.alignment_spacing - 20), label.min_width)
+            if label.max_width:
+                label.width = min(max_w + 40 + (label.alignment_spacing - 20), label.max_width)
+        else:
+            label.width = max_w + 40 + (label.alignment_spacing - 20)
         label.height = tot_h + 20
         label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
     label.original_surface = pygame.Surface((label.width, label.height), pygame.SRCALPHA)

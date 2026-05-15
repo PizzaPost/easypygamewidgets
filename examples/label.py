@@ -8,7 +8,8 @@ clock = pygame.time.Clock()
 epw.link_pygame_window(window)
 epw.set_appearance_mode(2)
 
-label1 = epw.Label(text="Hello World").place(0, 10)
+label1 = epw.Label(text="Hello World", min_width=450, active_unpressed_background_color=(255, 255, 255, 255)).place(0,
+                                                                                                                    10)
 label2 = epw.Label(text="You can\ndrag me!", dragable=True).place(0, 75)
 
 
