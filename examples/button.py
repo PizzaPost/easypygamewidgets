@@ -6,6 +6,7 @@ pygame.init()
 window = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
+epw.set_appearance_mode(2)
 
 button = epw.Button(text="Close\nApp!", active_hover_cursor=pygame.cursors.tri_left, command=lambda: exit(0))
 button.place(50, 50)

@@ -1,3 +1,5 @@
+import ctypes
+
 import pygame
 import requests
 
@@ -15,7 +17,7 @@ def check_update():
         response.raise_for_status()
         data = response.json()
         latest_version = data["version"]
-        current_version = "26.16.1"
+        current_version = "26.17"
         if latest_version != current_version:
             print(f"An update is available. Download it now with 'pip install --upgrade easypygamewidgets'\n"
                   f"You're currently on: {current_version}\n"
@@ -72,3 +74,9 @@ def create_pygame_layer(function, layer):
 
 def resort_layers():
     all_widgets.sort(key=lambda w: w[1] if isinstance(w, tuple) else w.layer)
+
+
+def set_appearance_mode(mode):
+    hwnd = pygame.display.get_wm_info()["window"]
+    tmp = ctypes.c_int(mode)
+    ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(tmp), ctypes.sizeof(tmp))

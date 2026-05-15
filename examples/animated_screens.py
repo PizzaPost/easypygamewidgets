@@ -6,6 +6,7 @@ pygame.init()
 window = pygame.display.set_mode((1000, 900))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
+epw.set_appearance_mode(2)
 
 screen = epw.Screen(visible=True).place(1000, 0)
 target_x = 1000

@@ -6,6 +6,7 @@ pygame.init()
 window = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
+epw.set_appearance_mode(2)
 
 entry = epw.Entry(placeholder_text="This is a placeholder :)")
 entry.place(50, 50)

@@ -6,6 +6,7 @@ pygame.init()
 window = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
+epw.set_appearance_mode(2)
 
 screen = epw.Screen(visible=True)
 

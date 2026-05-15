@@ -6,6 +6,7 @@ pygame.init()
 window = pygame.display.set_mode((900, 600))
 clock = pygame.time.Clock()
 epw.link_pygame_window(window)
+epw.set_appearance_mode(2)
 
 button = epw.Button(text="This tooltip will be color-matched to the button.",
                     active_unpressed_text_color=(255, 255, 255), active_hover_text_color=(255, 255, 255),
