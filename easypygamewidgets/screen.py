@@ -92,7 +92,7 @@ def draw(screen, surface: pygame.Surface):
 
 
 def react(screen, event=None):
-    for func in screen.scheduled_functions:
+    for func in screen.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()

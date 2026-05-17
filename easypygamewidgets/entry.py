@@ -553,12 +553,14 @@ def is_point_in_rounded_rect(entry, point):
 
 
 def react(entry, event=None):
-    for func in entry.scheduled_functions:
+    for func in entry.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()
             entry.scheduled_functions.remove(func)
     if entry.state != "enabled" or not entry.visible:
+        entry.pressed = False
+        entry.focused = False
         return
     display_text = entry.get_display_text()
     is_inside = is_point_in_rounded_rect(entry, pygame.mouse.get_pos())

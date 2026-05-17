@@ -501,7 +501,7 @@ def is_point_in_rounded_rect(slider, point):
 
 
 def react(slider, event=None):
-    for func in slider.scheduled_functions:
+    for func in slider.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()

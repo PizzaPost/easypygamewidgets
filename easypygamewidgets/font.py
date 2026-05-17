@@ -10,8 +10,11 @@ default_emoji_font_path = os.path.join(pack_font_path / "emoji" / "NotoEmoji-Reg
 
 
 class Font:
-    def __init__(self, font_path: str = default_font_path, font_size: int = 26, line_spacing: int | None = None):
+    def __init__(self, font_path: str = default_font_path, font_size: int = 26, line_spacing: int | None = None,
+                 bold: bool = False, italic: bool = False):
         self.font = pygame.font.Font(font_path, font_size)
+        self.font.set_bold(bold)
+        self.font.set_italic(italic)
         self.font.set_linesize(line_spacing) if line_spacing else self.font.set_linesize(font_size + 4)
 
     def __getattr__(self, attr):
@@ -19,8 +22,11 @@ class Font:
 
 
 class SysFont:
-    def __init__(self, font: str = "Arial", font_size: int = 26, line_spacing: int | None = None):
+    def __init__(self, font: str = "Arial", font_size: int = 26, line_spacing: int | None = None, bold: bool = False,
+                 italic: bool = False):
         self.font = pygame.font.SysFont(font, font_size)
+        self.font.set_bold(bold)
+        self.font.set_italic(italic)
         self.font.set_linesize(line_spacing) if line_spacing else self.font.set_linesize(font_size + 4)
 
     def __getattr__(self, attr):

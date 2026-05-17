@@ -684,7 +684,7 @@ def is_point_in_rounded_rect(label, point):
 
 
 def react(label, event=None):
-    for func in label.scheduled_functions:
+    for func in label.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()

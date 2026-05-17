@@ -443,7 +443,7 @@ def is_point_in_rounded_rect(timekeeper, point):
 
 
 def react(timekeeper, event=None):
-    for func in timekeeper.scheduled_functions:
+    for func in timekeeper.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()

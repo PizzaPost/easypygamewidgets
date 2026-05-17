@@ -324,7 +324,7 @@ def is_point_in_rounded_rect(tooltip, point):
 
 
 def react(tooltip, event=None):
-    for func in tooltip.scheduled_functions:
+    for func in tooltip.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()

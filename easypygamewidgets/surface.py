@@ -284,7 +284,7 @@ def draw(surface, window: pygame.Surface):
 
 
 def react(surface, event=None):
-    for func in surface.scheduled_functions:
+    for func in surface.scheduled_functions[:]:
         func[1] -= 1
         if func[1] <= 0:
             func[0]()
