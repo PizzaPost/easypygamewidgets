@@ -1,3 +1,7 @@
+# __init__.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import pygame
 
 from .button import Button

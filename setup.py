@@ -1,3 +1,7 @@
+# setup.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 from setuptools import setup, find_packages
 
 setup(

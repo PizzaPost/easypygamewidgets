@@ -1,3 +1,7 @@
+# label.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import pygame
 
 import easypygamewidgets as epw

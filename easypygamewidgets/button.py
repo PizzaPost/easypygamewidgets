@@ -1,3 +1,13 @@
+# button.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
+# PERFECTION
+# everything private
+# basic animations ✅
+# free spacing ✔️
+# cache system ✅
+
 import pygame
 
 from easypygamewidgets import font, misc

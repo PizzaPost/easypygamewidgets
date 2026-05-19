@@ -1,3 +1,7 @@
+# surface.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import time
 
 import pygame

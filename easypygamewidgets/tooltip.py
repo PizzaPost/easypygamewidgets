@@ -1,3 +1,7 @@
+# tooltip.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import os
 import pathlib
 

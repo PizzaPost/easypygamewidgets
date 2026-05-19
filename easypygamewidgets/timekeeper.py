@@ -1,3 +1,7 @@
+# timekeeper.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import math
 import time
 

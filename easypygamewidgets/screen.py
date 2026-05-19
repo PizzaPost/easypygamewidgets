@@ -1,3 +1,7 @@
+# screen.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import pygame
 
 from easypygamewidgets import misc

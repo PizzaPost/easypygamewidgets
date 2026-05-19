@@ -1,3 +1,7 @@
+# misc.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import ctypes
 
 import pygame

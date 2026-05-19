@@ -1,3 +1,7 @@
+# entry.py
+# by PizzaPost
+# https://github.com/PizzaPost/pywidgets
+
 import sys
 
 import pygame
