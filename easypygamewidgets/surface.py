@@ -51,6 +51,8 @@ class Surface:
                                   active_unpressed_background_color=(50, 50, 50, 255),
                                   active_unpressed_border_color=(100, 100, 100, 255))
         self.data = data
+        self._width = surface.get_width()
+        self._height = surface.get_height()
         self.x = 0
         self.y = 0
         self.alive = True
@@ -76,13 +78,23 @@ class Surface:
 
         misc.add_widget(self)
 
+    @property
+    def width(self):
+        return int(self._width * self.current_scale)
+
+    @property
+    def height(self):
+        return int(self._height * self.current_scale)
+
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         if 'surface' in kwargs:
             self.original_surface = kwargs["surface"]
         if 'x' in kwargs or 'y' in kwargs or 'surface' in kwargs:
-            self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
+            self._width = self.surface.get_width()
+            self._height = self.surface.get_height()
+            self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -97,10 +109,20 @@ class Surface:
         if self in misc.all_widgets:
             misc.all_widgets.remove(self)
 
-    def place(self, x: int, y: int):
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(self.x, self.y, self.surface.get_width(), self.surface.get_height())
+    def place(self, x: int, y: int, mode: str = "px"):
+        if mode == "px":
+            self.x = x
+            self.y = y
+        elif mode in ("%", "percent", "percentage"):
+            screen_width = misc.pg.get_width()
+            screen_height = misc.pg.get_height()
+            self.x = int(x * screen_width / 100)
+            self.y = int(y * screen_height / 100)
+        else:
+            self.x = x
+            self.y = y
+            print(f"Invalid Mode: {mode}\nFallback: px")
+        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):

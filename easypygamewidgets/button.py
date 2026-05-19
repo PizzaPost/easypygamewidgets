@@ -30,7 +30,7 @@ class Button:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 20, corner_radius: int = 20, layer=1000, line_spacing: int = 30,
+                 command=None, alignment_spacing: int = 60, corner_radius: int = 20, layer=1000, line_spacing: int = 30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
                  max_width: int | None = None, min_height: int | None = None, max_height: int | None = None, data=None):
         self.bindings = {}
@@ -56,19 +56,19 @@ class Button:
                 if text_w > total_w:
                     total_w = text_w
             total_h = len(lines) * line_spacing
-            self.width = total_w + 40 + (alignment_spacing - 20)
+            self._width = total_w + (alignment_spacing - 20)
             if min_width:
-                self.width = max(self.width, min_width)
+                self._width = max(self._width, min_width)
             if max_width:
-                self.width = min(self.width, max_width)
-            self.height = total_h + 20
+                self._width = min(self._width, max_width)
+            self._height = total_h + 20
             if min_height:
-                self.height = max(self.height, min_height)
+                self._height = max(self._height, min_height)
             if max_height:
-                self.height = min(self.height, max_height)
+                self._height = min(self._height, max_height)
         else:
-            self.width = width
-            self.height = height
+            self._width = width
+            self._height = height
         self.text = text
         self.active_unpressed_text_color = normalize_color(active_unpressed_text_color)
         self.disabled_unpressed_text_color = normalize_color(disabled_unpressed_text_color)
@@ -124,7 +124,7 @@ class Button:
         self.y = 0
         self.alive = True
         self.pressed = False
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         self.original_cursor = None
         self.scheduled_functions = []
         self.is_hovered = False
@@ -149,6 +149,14 @@ class Button:
 
         misc.add_widget(self)
 
+    @property
+    def width(self):
+        return int(self._width * self.current_scale)
+
+    @property
+    def height(self):
+        return int(self._height * self.current_scale)
+
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -166,7 +174,7 @@ class Button:
                     if text_w > total_w:
                         total_w = text_w
                 total_h = len(lines) * self.line_spacing
-                self.width = total_w + 40 + (self.alignment_spacing - 20)
+                self.width = total_w + (self.alignment_spacing - 20)
                 if self.min_width:
                     self.width = max(total_w, self.min_width)
                 if self.max_width:
@@ -176,7 +184,7 @@ class Button:
                     self.height = max(total_h + 20, self.min_height)
                 if self.max_height:
                     self.height = min(total_h + 20, self.max_height)
-            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+            self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'command' in kwargs:
@@ -195,10 +203,20 @@ class Button:
         if self in misc.all_widgets:
             misc.all_widgets.remove(self)
 
-    def place(self, x: int, y: int):
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+    def place(self, x: int, y: int, mode: str = "px"):
+        if mode == "px":
+            self.x = x
+            self.y = y
+        elif mode in ("%", "percent", "percentage"):
+            screen_width = misc.pg.get_width()
+            screen_height = misc.pg.get_height()
+            self.x = int(x * screen_width / 100)
+            self.y = int(y * screen_height / 100)
+        else:
+            self.x = x
+            self.y = y
+            print(f"Invalid Mode: {mode}\nFallback: px")
+        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         self.needs_transform = True
         return self
 
@@ -361,8 +379,8 @@ def render_button_surface(button, is_hovering):
             bg_color = button.disabled_unpressed_background_color
             brd_color = button.disabled_unpressed_border_color
 
-    cached = pygame.Surface((button.width, button.height), pygame.SRCALPHA)
-    local_rect = pygame.Rect(0, 0, button.width, button.height)
+    cached = pygame.Surface((button._width, button._height), pygame.SRCALPHA)
+    local_rect = pygame.Rect(0, 0, button._width, button._height)
     pygame.draw.rect(cached, bg_color, local_rect, border_radius=button.corner_radius)
     if brd_color:
         pygame.draw.rect(cached, brd_color, local_rect, width=button.border_thickness,

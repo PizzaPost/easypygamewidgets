@@ -71,9 +71,19 @@ class Screen:
                 else:
                     widget.state = "disabled"
 
-    def place(self, x, y):
-        self.x = x
-        self.y = y
+    def place(self, x: int, y: int, mode: str = "px"):
+        if mode == "px":
+            self.x = x
+            self.y = y
+        elif mode in ("%", "percent", "percentage"):
+            screen_width = misc.pg.get_width()
+            screen_height = misc.pg.get_height()
+            self.x = int(x * screen_width / 100)
+            self.y = int(y * screen_height / 100)
+        else:
+            self.x = x
+            self.y = y
+            print(f"Invalid Mode: {mode}\nFallback: px")
         return self
 
     def schedule(self, function, frames_to_execute):

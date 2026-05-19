@@ -220,10 +220,20 @@ class Slider:
         if self in misc.all_widgets:
             misc.all_widgets.remove(self)
 
-    def place(self, x: int, y: int):
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(self.x, self.y, self.width, 60)
+    def place(self, x: int, y: int, mode: str = "px"):
+        if mode == "px":
+            self.x = x
+            self.y = y
+        elif mode in ("%", "percent", "percentage"):
+            screen_width = misc.pg.get_width()
+            screen_height = misc.pg.get_height()
+            self.x = int(x * screen_width / 100)
+            self.y = int(y * screen_height / 100)
+        else:
+            self.x = x
+            self.y = y
+            print(f"Invalid Mode: {mode}\nFallback: px")
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):

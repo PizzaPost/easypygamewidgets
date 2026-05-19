@@ -46,7 +46,7 @@ class Label:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 alignment_spacing: int = 20, dragable: bool = False, top_left_corner_radius: int = 25,
+                 alignment_spacing: int = 60, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
@@ -66,19 +66,19 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            self.width = max_w + 40 + (alignment_spacing - 20)
+            self._width = max_w + (alignment_spacing - 20)
             if min_width:
-                self.width = max(max_w + 40 + (alignment_spacing - 20), min_width)
+                self._width = max(max_w + (alignment_spacing - 20), min_width)
             if max_width:
-                self.width = min(max_w + 40 + (alignment_spacing - 20), max_width)
-            self.height = total_h + 20
+                self._width = min(max_w + (alignment_spacing - 20), max_width)
+            self._height = total_h + 20
             if min_height:
-                self.height = max(total_h + 20, min_height)
+                self._height = max(total_h + 20, min_height)
             if max_height:
-                self.height = min(total_h + 20, max_height)
+                self._height = min(total_h + 20, max_height)
         else:
-            self.width = width + alignment_spacing
-            self.height = height
+            self._width = width + alignment_spacing
+            self._height = height
         self.text = text
 
         self.active_hover_text_color = normalize_color(active_hover_text_color)
@@ -201,7 +201,7 @@ class Label:
         self.y = 0
         self.alive = True
         self.pressed = False
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         self.original_cursor = None
         self.drag_offset = None
         self.is_dragging = False
@@ -226,6 +226,14 @@ class Label:
 
         misc.add_widget(self)
 
+    @property
+    def width(self):
+        return int(self._width * self.current_scale)
+
+    @property
+    def height(self):
+        return int(self._height * self.current_scale)
+
     def configure(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -239,17 +247,17 @@ class Label:
                         default=0) + self.alignment_spacing
             total_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
-                self.width = max_w + 40 + (self.alignment_spacing - 20)
+                self.width = max_w + (self.alignment_spacing - 20)
                 if self.min_width:
-                    self.width = max(max_w + 40 + (self.alignment_spacing - 20), self.min_width)
+                    self.width = max(max_w + (self.alignment_spacing - 20), self.min_width)
                 if self.max_width:
-                    self.width = min(max_w + 40 + (self.alignment_spacing - 20), self.max_width)
+                    self.width = min(max_w + (self.alignment_spacing - 20), self.max_width)
                 self.height = total_h + 20
                 if self.min_height:
                     self.height = max(total_h + 20, self.min_height)
                 if self.max_height:
                     self.height = min(total_h + 20, self.max_height)
-            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+            self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -266,10 +274,20 @@ class Label:
         if self in misc.all_widgets:
             misc.all_widgets.remove(self)
 
-    def place(self, x: int, y: int):
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+    def place(self, x: int, y: int, mode: str = "px"):
+        if mode == "px":
+            self.x = x
+            self.y = y
+        elif mode in ("%", "percent", "percentage"):
+            screen_width = misc.pg.get_width()
+            screen_height = misc.pg.get_height()
+            self.x = int(x * screen_width / 100)
+            self.y = int(y * screen_height / 100)
+        else:
+            self.x = x
+            self.y = y
+            print(f"Invalid Mode: {mode}\nFallback: px")
+        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         self.needs_transform = True
         return self
 
@@ -467,11 +485,11 @@ def render_base_surface(label, is_hovering):
         lines = str(label.text).split("\n")
         max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
         total_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
-        label.width = max_w + 40 + (label.alignment_spacing - 20)
+        label.width = max_w + (label.alignment_spacing - 20)
         if label.min_width:
-            label.width = max(max_w + 40 + (label.alignment_spacing - 20), label.min_width)
+            label.width = max(max_w + (label.alignment_spacing - 20), label.min_width)
         if label.max_width:
-            label.width = min(max_w + 40 + (label.alignment_spacing - 20), label.max_width)
+            label.width = min(max_w + (label.alignment_spacing - 20), label.max_width)
         label.height = total_h + 20
         if label.min_height:
             label.height = max(total_h + 20, label.min_height)
@@ -600,7 +618,7 @@ def draw(label, surface: pygame.Surface):
                 label.surface = pygame.Surface((0, 0), pygame.SRCALPHA)
         else:
             label.surface = label.original_surface.copy()
-        base_rect = pygame.Rect(label.x, label.y, label.width, label.height)
+        base_rect = pygame.Rect(label.x, label.y, label._width, label._height)
         old_center = base_rect.center
         label.rect = label.surface.get_rect()
         label.rect.center = old_center
