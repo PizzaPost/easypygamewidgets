@@ -77,56 +77,56 @@ pygame.quit()
 ## Widgets Documentation
 
 All examples will use the
-same [start template code](https://github.com/PizzaPost/pywidgets/blob/master/examples/start_template.py).
+same [start template code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/start_template.py).
 
 ### Screen
 
 A container for managing groups of widgets with shared visibility and state.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/screen.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/screen.py)
 
 ### Button
 
 A customizable button widget to run commands when interacted.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/button.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/button.py)
 
 ### Slider
 
 A slider for selecting values within a specific range.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/slider.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/slider.py)
 
 ### Entry
 
 A text entry with selection and clipboard support.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/entry.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/entry.py)
 
 ### Label
 
 A text display that can be used to drag it into places or show text.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/label.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/label.py)
 
 ### Surface (images etc.)
 
 This converts your pygame surfaces into an easypygamewidgets widget that can be used in screens.
 (All pygame surface commands can be applied to the "surface" attribute of your widget.)
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/surface.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/surface.py)
 
 ### Timekeeper
 
 A text display that can show a timer or stopwatch.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/timekeeper.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/timekeeper.py)
 
 ### Tooltips
 
 A text display that is only shown when you hover over a widgets.
 
-[example code](https://github.com/PizzaPost/pywidgets/blob/master/examples/tooltip.py)
+[example code](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/tooltip.py)
 
 ## Module Functions
 
@@ -148,18 +148,23 @@ epw.flip()
 
 ## Examples (COMING SOON)
 
-Check the [examples directory](https://github.com/PizzaPost/pywidgets/tree/master/examples) for complete working
+Check the [examples directory](https://github.com/PizzaPost/easypygamewidgets/tree/master/examples) for complete working
 examples:
 
-1. **[all widgets example](https://github.com/PizzaPost/pywidgets/blob/master/examples/basic.py)** - simple demo of all
+1. **[all widgets example](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/basic.py)** - simple demo
+   of all
    widgets
-2. **[screens with animations](https://github.com/PizzaPost/pywidgets/blob/master/examples/animated_screens.py)** -
+2. **[screens with animations](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/animated_screens.py)
+   ** -
    multiple screens with transitions
-3. **[settings screen](https://github.com/PizzaPost/pywidgets/blob/master/examples/settings.py)** - interactive settings
+3. **[settings screen](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/settings.py)** - interactive
+   settings
    panel with sliders
-4. **[login form](https://github.com/PizzaPost/pywidgets/blob/master/examples/login_form.py)** - form with entries and
+4. **[login form](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/login_form.py)** - form with
+   entries and
    validation
-5. **[bindings](https://github.com/PizzaPost/pywidgets/blob/master/examples/slider.py)** - binding events to widgets
+5. **[bindings](https://github.com/PizzaPost/easypygamewidgets/blob/master/examples/slider.py)** - binding events to
+   widgets
 
 ## Requirements
 
@@ -176,16 +181,16 @@ Contributions are welcome! Please feel free to submit a pull request. Of course 
 ## License
 
 This project is licensed under the MIT License - see
-the [LICENSE file](https://github.com/PizzaPost/pywidgets/blob/master/LICENSE) for details.
+the [LICENSE file](https://github.com/PizzaPost/easypygamewidgets/blob/master/LICENSE) for details.
 
 ## Support
 
-- Issues: [GitHub Issues](https://github.com/PizzaPost/pywidgets/issues)
+- Issues: [GitHub Issues](https://github.com/PizzaPost/easypygamewidgets/issues)
 - Discord: [My Account](https://www.discord.com/users/916636380967354419)
 - Instagram: [My Account](https://www.instagram.com/8002_phil/)
 
-- License: [MIT](https://github.com/PizzaPost/pywidgets/blob/master/LICENSE)
-- History: [GitHub History](https://github.com/PizzaPost/pywidgets/commits/master/)
+- License: [MIT](https://github.com/PizzaPost/easypygamewidgets/blob/master/LICENSE)
+- History: [GitHub History](https://github.com/PizzaPost/easypygamewidgets/commits/master/)
 
 ---
 

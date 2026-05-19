@@ -1,6 +1,6 @@
 # __init__.py
 # by PizzaPost
-# https://github.com/PizzaPost/pywidgets
+# https://github.com/PizzaPost/easypygamewidgets
 
 import pygame
 
