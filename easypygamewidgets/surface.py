@@ -158,6 +158,7 @@ class Surface:
         else:
             self.target_scale = value
         self.scale_step = (self.target_scale - self.current_scale) / frames_to_finish
+        update_animation(self)
         return self
 
     def rotate(self, value=None, frames_to_finish=1):
@@ -168,6 +169,7 @@ class Surface:
         else:
             self.target_rotation = value
         self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
+        update_animation(self)
         return self
 
     def rotozoom(self, scale=None, rotation=None, frames_to_finish=1):
@@ -178,6 +180,7 @@ class Surface:
         self.target_rotation = 0 if rotation is None else rotation
         self.rotation_step = (self.target_rotation - self.current_rotation) / frames_to_finish
         self.use_rotozoom = True
+        update_animation(self)
         return self
 
     def offset(self, value: tuple[int, int], frames_to_finish=1):
@@ -189,6 +192,7 @@ class Surface:
             self.target_offset = value
         self.offset_step[0] = (self.target_offset[0] - self.current_offset[0]) / frames_to_finish
         self.offset_step[1] = (self.target_offset[1] - self.current_offset[1]) / frames_to_finish
+        update_animation(self)
         return self
 
     def schedule(self, function, frames_to_execute):
