@@ -251,16 +251,16 @@ class Label:
                         default=0) + self.alignment_spacing
             total_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
-                self.width = max_w + (self.alignment_spacing - 20)
+                self._width = max_w + (self.alignment_spacing - 20)
                 if self.min_width:
-                    self.width = max(max_w + (self.alignment_spacing - 20), self.min_width)
+                    self._width = max(max_w + (self.alignment_spacing - 20), self.min_width)
                 if self.max_width:
-                    self.width = min(max_w + (self.alignment_spacing - 20), self.max_width)
-                self.height = total_h + 20
+                    self._width = min(max_w + (self.alignment_spacing - 20), self.max_width)
+                self._height = total_h + 20
                 if self.min_height:
-                    self.height = max(total_h + 20, self.min_height)
+                    self._height = max(total_h + 20, self.min_height)
                 if self.max_height:
-                    self.height = min(total_h + 20, self.max_height)
+                    self._height = min(total_h + 20, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -489,21 +489,21 @@ def render_base_surface(label, is_hovering):
         lines = str(label.text).split("\n")
         max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
         total_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
-        label.width = max_w + (label.alignment_spacing - 20)
+        label._width = max_w + (label.alignment_spacing - 20)
         if label.min_width:
-            label.width = max(max_w + (label.alignment_spacing - 20), label.min_width)
+            label._width = max(max_w + (label.alignment_spacing - 20), label.min_width)
         if label.max_width:
-            label.width = min(max_w + (label.alignment_spacing - 20), label.max_width)
-        label.height = total_h + 20
+            label._width = min(max_w + (label.alignment_spacing - 20), label.max_width)
+        label._height = total_h + 20
         if label.min_height:
-            label.height = max(total_h + 20, label.min_height)
+            label._height = max(total_h + 20, label.min_height)
         if label.max_height:
-            label.height = min(total_h + 20, label.max_height)
-        label.rect = pygame.Rect(label.x, label.y, label.width, label.height)
-    label.original_surface = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
-    draw_req_rect = pygame.Rect(0, 0, label.width, label.height)
+            label._height = min(total_h + 20, label.max_height)
+        label.rect = pygame.Rect(label.x, label.y, label._width, label._height)
+    label.original_surface = pygame.Surface((label._width, label._height), pygame.SRCALPHA)
+    draw_req_rect = pygame.Rect(0, 0, label._width, label._height)
     if bg_color:
-        shape_surf = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
+        shape_surf = pygame.Surface((label._width, label._height), pygame.SRCALPHA)
         pygame.draw.rect(shape_surf, bg_color, draw_req_rect,
                          border_top_left_radius=label.top_left_corner_radius,
                          border_top_right_radius=label.top_right_corner_radius,
@@ -512,7 +512,7 @@ def render_base_surface(label, is_hovering):
         shape_surf.set_alpha(bg_color[3])
         label.original_surface.blit(shape_surf, (0, 0))
     if brd_color:
-        shape_surf = pygame.Surface((label.width, label.height), pygame.SRCALPHA)
+        shape_surf = pygame.Surface((label._width, label._height), pygame.SRCALPHA)
         pygame.draw.rect(shape_surf, brd_color, draw_req_rect, width=label.border_thickness,
                          border_top_left_radius=label.top_left_corner_radius,
                          border_top_right_radius=label.top_right_corner_radius,
@@ -680,8 +680,8 @@ def is_point_in_rounded_rect(label, point):
             v = pygame.math.Vector2(x - cx, y - cy)
             v = v.rotate(rotation)
             x, y = cx + v.x, cy + v.y
-        base_w = label.width * scale
-        base_h = label.height * scale
+        base_w = label._width * scale
+        base_h = label._height * scale
         geom_rect = pygame.Rect(0, 0, base_w, base_h)
         geom_rect.center = (cx, cy)
         if not geom_rect.collidepoint((x, y)):

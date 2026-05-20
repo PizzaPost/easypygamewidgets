@@ -184,16 +184,16 @@ class Button:
                     if text_w > total_w:
                         total_w = text_w
                 total_h = len(lines) * self.line_spacing
-                self.width = total_w + (self.alignment_spacing - 20)
+                self._width = total_w + (self.alignment_spacing - 20)
                 if self.min_width:
-                    self.width = max(total_w, self.min_width)
+                    self._width = max(total_w, self.min_width)
                 if self.max_width:
-                    self.width = min(total_w, self.max_width)
-                self.height = total_h + 20
+                    self._width = min(total_w, self.max_width)
+                self._height = total_h + 20
                 if self.min_height:
-                    self.height = max(total_h + 20, self.min_height)
+                    self._height = max(total_h + 20, self.min_height)
                 if self.max_height:
-                    self.height = min(total_h + 20, self.max_height)
+                    self._height = min(total_h + 20, self.max_height)
             self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
@@ -520,8 +520,8 @@ def is_point_in_rounded_rect(button, point):
             v = pygame.math.Vector2(x - cx, y - cy)
             v = v.rotate(rotation)
             x, y = cx + v.x, cy + v.y
-        base_w = button.width * scale
-        base_h = button.height * scale
+        base_w = button._width * scale
+        base_h = button._height * scale
         geom_rect = pygame.Rect(0, 0, base_w, base_h)
         geom_rect.center = (cx, cy)
         if not geom_rect.collidepoint((x, y)):
