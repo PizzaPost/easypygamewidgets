@@ -962,7 +962,7 @@ def render_button_surface(button, is_hovering):
         available_width = local_rect.width - button.alignment_spacing
         if available_width > total_char_width:
             spacing = (available_width - total_char_width) / (len(button.text) - 1)
-            current_x = local_rect.left + button.alignment_spacing
+            current_x = local_rect.left + button.alignment_spacing // 2
             for char in button.text:
                 char_surf = button.font.render(char, True, text_color)
                 char_surf.set_alpha(text_color[3])

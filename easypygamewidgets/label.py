@@ -58,7 +58,7 @@ class Label:
                  disabled_hover_cursor: pygame.Cursor = None,
                  active_pressed_cursor: pygame.Cursor = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 alignment_spacing: int = 60, dragable: bool = False, top_left_corner_radius: int = 25,
+                 alignment_spacing: int = 40, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
@@ -78,11 +78,11 @@ class Label:
         self.underline = False
         self.auto_size = auto_size
         if auto_size:
-            self._width = max_w + (alignment_spacing - 20)
+            self._width = max_w + alignment_spacing * 2
             if min_width:
-                self._width = max(max_w + (alignment_spacing - 20), min_width)
+                self._width = max(max_w + alignment_spacing * 2, min_width)
             if max_width:
-                self._width = min(max_w + (alignment_spacing - 20), max_width)
+                self._width = min(max_w + alignment_spacing * 2, max_width)
             self._height = total_h + 20
             if min_height:
                 self._height = max(total_h + 20, min_height)
@@ -259,11 +259,11 @@ class Label:
                         default=0) + self.alignment_spacing
             total_h = sum(self.font.render(line, True, (255, 255, 255)).get_height() for line in lines)
             if self.auto_size:
-                self._width = max_w + (self.alignment_spacing - 20)
+                self._width = max_w + self.alignment_spacing * 2
                 if self.min_width:
-                    self._width = max(max_w + (self.alignment_spacing - 20), self.min_width)
+                    self._width = max(max_w + self.alignment_spacing * 2, self.min_width)
                 if self.max_width:
-                    self._width = min(max_w + (self.alignment_spacing - 20), self.max_width)
+                    self._width = min(max_w + self.alignment_spacing * 2, self.max_width)
                 self._height = total_h + 20
                 if self.min_height:
                     self._height = max(total_h + 20, self.min_height)
@@ -497,11 +497,11 @@ def render_base_surface(label, is_hovering):
         lines = str(label.text).split("\n")
         max_w = max((label.font.render(line, True, text_color).get_width() for line in lines), default=0)
         total_h = sum(label.font.render(line, True, text_color).get_height() for line in lines)
-        label._width = max_w + (label.alignment_spacing - 20)
+        label._width = max_w + label.alignment_spacing * 2
         if label.min_width:
-            label._width = max(max_w + (label.alignment_spacing - 20), label.min_width)
+            label._width = max(max_w + label.alignment_spacing * 2, label.min_width)
         if label.max_width:
-            label._width = min(max_w + (label.alignment_spacing - 20), label.max_width)
+            label._width = min(max_w + label.alignment_spacing * 2, label.max_width)
         label._height = total_h + 20
         if label.min_height:
             label._height = max(total_h + 20, label.min_height)
