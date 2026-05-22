@@ -11,6 +11,15 @@ from easypygamewidgets import font, misc
 pygame.init()
 
 
+# PERFECTION
+# everything private/properties ❌
+# basic animations ❌
+# free spacing ❌
+# cache system ❌
+# config suggestions ❌
+# optimized set_screen function ❌
+# scroll with text ❌
+
 class Entry:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 80, placeholder_text: str = "easypygamewidgets Entry",
@@ -57,12 +66,12 @@ class Entry:
                 self.state = "enabled"
         self.auto_size = auto_size
         self.width = width
+        self.height = height
         if auto_size:
             if max_width:
                 self.width = min(self.width, max_width)
             if min_width:
                 self.width = max(self.width, min_width)
-            self.height = height
             if max_height:
                 self.height = min(self.height, max_height)
             if min_height:

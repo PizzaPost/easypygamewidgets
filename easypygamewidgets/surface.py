@@ -11,6 +11,13 @@ from easypygamewidgets import misc
 pygame.init()
 
 
+# PERFECTION
+# everything private/properties ❌
+# basic animations ✅
+# cache system ✅
+# config suggestions ❌
+# optimized set_screen function ❌
+
 class Surface:
     def __init__(self, surface: pygame.Surface, screen: "easypygamewidgets.Screen | None" = None,
                  state: str | None = None,

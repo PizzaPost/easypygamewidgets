@@ -2,6 +2,8 @@
 # by PizzaPost
 # https://github.com/PizzaPost/easypygamewidgets
 
+from typing import Callable
+
 import pygame
 
 from .button import Button
@@ -21,7 +23,7 @@ def flip():
         misc.check_linked()
     for widget in misc.all_widgets:
         if isinstance(widget, tuple):
-            if not isinstance(widget[0], pygame.Surface):  # if it's a function
+            if isinstance(widget[0], Callable):
                 try:
                     widget[0]()
                 except TypeError:
@@ -51,6 +53,8 @@ def flip():
 
 def handle_event(event):
     for widget in misc.all_widgets:
+        if isinstance(widget, Screen):
+            screen.react(widget, event)
         if isinstance(widget, Button):
             button.react(widget, event)
         elif isinstance(widget, Slider):
@@ -63,10 +67,14 @@ def handle_event(event):
             surface.react(widget, event)
         elif isinstance(widget, Timekeeper):
             timekeeper.react(widget, event)
+        elif isinstance(widget, Tooltip):
+            tooltip.react(widget, event)
 
 
 def handle_special_events():
     for widget in misc.all_widgets:
+        if isinstance(widget, Screen):
+            screen.react(widget)
         if isinstance(widget, Button):
             button.react(widget)
         elif isinstance(widget, Slider):
@@ -79,3 +87,5 @@ def handle_special_events():
             surface.react(widget)
         elif isinstance(widget, Timekeeper):
             timekeeper.react(widget)
+        elif isinstance(widget, Tooltip):
+            tooltip.react(widget)

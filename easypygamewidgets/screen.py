@@ -9,6 +9,10 @@ from easypygamewidgets import misc
 pygame.init()
 
 
+# PERFECTION
+# everything private/properties ❌
+# animations ❌
+
 class Screen:
     def __init__(self,
                  widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidget.Label | easypygamewidgets.Slider | easypygamewidgets.Surface | easypygamewidgets.Timekeeper]" = None,
@@ -66,14 +70,14 @@ class Screen:
         for widget in self.widgets:
             if update_visibility:
                 if self.visible:
-                    widget.visible = True
+                    widget.configure(visible=True)
                 else:
-                    widget.visible = False
+                    widget.configure(visible=False)
             if update_state:
                 if self.enabled:
-                    widget.state = "enabled"
+                    widget.configure(state="enabled")
                 else:
-                    widget.state = "disabled"
+                    widget.configure(state="disabled")
 
     def place(self, x: int, y: int, mode: str = "px"):
         if mode == "px":

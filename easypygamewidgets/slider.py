@@ -11,6 +11,13 @@ from easypygamewidgets import font, misc
 pygame.init()
 
 
+# PERFECTION
+# everything private/properties ❌
+# basic animations ❌
+# cache system ❌
+# config suggestions ❌
+# optimized set_screen function ❌
+
 class Slider:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 16,

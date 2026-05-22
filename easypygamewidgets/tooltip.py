@@ -12,6 +12,13 @@ from easypygamewidgets import font, misc
 pygame.init()
 
 
+# PERFECTION
+# everything private/properties ❌
+# basic animations ❌
+# free spacing ❌
+# cache system ❌
+# config suggestions ❌
+
 class Tooltip:
     def __init__(self,
                  widget: "easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidgets.Label | easypygamewidgets.Slider | easypygamewidgets.Surface | easypygamewidgets.Timekeeper | None" = None,
@@ -32,7 +39,7 @@ class Tooltip:
         self.bindings = {}
         self.style = style
         self.icon = None
-        self.layer = layer
+        self._layer = layer
         if not style:
             self.active_unpressed_text_color = normalize_color((255, 255, 255, 255))
             self.active_unpressed_background_color = normalize_color((50, 50, 50, 255))
@@ -114,7 +121,7 @@ class Tooltip:
         self.pressed = False
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.original_cursor = None
-        self.visible = False
+        self._visible = False
         self.scheduled_functions = []
         self.needs_redraw = True
         self.cached_surface = None
@@ -122,6 +129,23 @@ class Tooltip:
         self.font.set_linesize(line_spacing)
 
         misc.add_widget(self)
+
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, value):
+        self._visible = value
+
+    @property
+    def layer(self):
+        return self._layer
+
+    @layer.setter
+    def layer(self, value):
+        self._layer = value
+        misc.resort_layers()
 
     def configure(self, **kwargs):
         for key, value in kwargs.items():
@@ -141,8 +165,6 @@ class Tooltip:
             self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         if 'widget' in kwargs:
             kwargs["widget"].set_tooltip(self)
-        if 'layer' in kwargs:
-            misc.resort_layers()
         if 'line_spacing' in kwargs:
             self.font.set_linesize(self.line_spacing)
         return self
@@ -183,12 +205,12 @@ class Tooltip:
                 command(*args, **kwargs)
 
     def show(self):
-        self.visible = True
+        self._visible = True
         self.trigger_event("<SHOW>")
         return self
 
     def hide(self):
-        self.visible = False
+        self._visible = False
         self.trigger_event("<HIDE>")
         return self
 
@@ -197,7 +219,7 @@ class Tooltip:
         return self
 
     def remove_widget(self, widget):
-        widget.set_tooltip(None)
+        widget.remove_tooltip()
         return self
 
     def schedule(self, function, frames_to_execute):
@@ -284,7 +306,7 @@ def render_tooltip_surface(tooltip):
 
 
 def draw(tooltip, surface: pygame.Surface):
-    if not tooltip.visible:
+    if not tooltip._visible:
         return
     tooltip.font.set_linesize(tooltip.line_spacing)
     mouse_pos = pygame.mouse.get_pos()

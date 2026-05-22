@@ -13,6 +13,9 @@ default_font_path = os.path.join(pack_font_path / "roboto mono" / "RobotoMono-Re
 default_emoji_font_path = os.path.join(pack_font_path / "emoji" / "NotoEmoji-Regular.ttf")
 
 
+# PERFECTION
+# everything private/properties ✅
+
 class Font:
     def __init__(self, font_path: str = default_font_path, font_size: int = 26, line_spacing: int | None = None,
                  bold: bool = False, italic: bool = False):
