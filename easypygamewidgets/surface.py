@@ -50,7 +50,7 @@ class Surface:
             else:
                 if cursor is not None:
                     print(
-                        f"No custom cursor is used for the surface {self.text} because it's not a pygame.Cursor object. ({cursor})")
+                        f"No custom cursor is used for a surface because it's not a pygame.Cursor object. ({cursor})")
                 self.cursors[name] = None
         self.dragable = dragable
         self.layer = layer
@@ -102,10 +102,22 @@ class Surface:
             setattr(self, key, value)
         if 'surface' in kwargs:
             self.original_surface = kwargs["surface"]
+            self._width = self.original_surface.get_width()
+            self._height = self.original_surface.get_height()
+            if self.current_scale != 1 or self.current_rotation != 0:
+                new_width = int(self._width * self.current_scale)
+                new_height = int(self._height * self.current_scale)
+                if new_width > 0 and new_height > 0:
+                    if self.use_rotozoom:
+                        self.surface = pygame.transform.rotozoom(self.original_surface, self.current_rotation,
+                                                                 self.current_scale)
+                    else:
+                        scaled_surface = pygame.transform.smoothscale(self.original_surface, (new_width, new_height))
+                        self.surface = pygame.transform.rotate(scaled_surface, self.current_rotation)
+            else:
+                self.surface = self.original_surface.copy()
         if 'x' in kwargs or 'y' in kwargs or 'surface' in kwargs:
-            self._width = self.surface.get_width()
-            self._height = self.surface.get_height()
-            self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
+            self.rect = self.surface.get_rect(topleft=(self.x, self.y))
         if 'screen' in kwargs:
             self.set_screen(kwargs["screen"])
         if 'layer' in kwargs:
@@ -133,7 +145,7 @@ class Surface:
             self.x = x
             self.y = y
             print(f"Invalid Mode: {mode}\nFallback: px")
-        self.rect = pygame.Rect(self.x, self.y, self._width, self._height)
+        self.rect = self.surface.get_rect(topleft=(self.x, self.y))
         return self
 
     def bind(self, event: str, command, require_hover: bool = True):
@@ -236,35 +248,43 @@ class Surface:
 
 
 def update_animation(surface):
+    changed_transform = False
     if surface.current_scale != surface.target_scale:
         if abs(surface.current_scale - surface.target_scale) <= abs(surface.scale_step):
             surface.current_scale = surface.target_scale
         else:
             surface.current_scale += surface.scale_step
+        changed_transform = True
     if surface.current_rotation != surface.target_rotation:
         if abs(surface.current_rotation - surface.target_rotation) <= abs(surface.rotation_step):
             surface.current_rotation = surface.target_rotation
         else:
             surface.current_rotation += surface.rotation_step
+        changed_transform = True
     for x in range(2):
         if surface.current_offset[x] != surface.target_offset[x]:
             if abs(surface.current_offset[x] - surface.target_offset[x]) <= abs(surface.offset_step[x]):
                 surface.current_offset[x] = float(surface.target_offset[x])
             else:
                 surface.current_offset[x] += surface.offset_step[x]
-    if surface.current_scale != 1 or surface.current_rotation != 0:
-        new_width = int(surface.original_surface.get_width() * surface.current_scale)
-        new_height = int(surface.original_surface.get_height() * surface.current_scale)
-        if new_width > 0 and new_height > 0:
-            if surface.use_rotozoom:
-                surface.surface = pygame.transform.rotozoom(surface.original_surface, surface.current_rotation,
-                                                            surface.current_scale)
-            else:
-                scaled_surface = pygame.transform.smoothscale(surface.original_surface, (new_width, new_height))
-                surface.surface = pygame.transform.rotate(scaled_surface, surface.current_rotation)
-            old_center = surface.rect.center
-            surface.rect = surface.surface.get_rect()
-            surface.rect.center = old_center
+    if changed_transform:
+        if surface.current_scale != 1 or surface.current_rotation != 0:
+            new_width = int(surface.original_surface.get_width() * surface.current_scale)
+            new_height = int(surface.original_surface.get_height() * surface.current_scale)
+            if new_width > 0 and new_height > 0:
+                if surface.use_rotozoom:
+                    surface.surface = pygame.transform.rotozoom(surface.original_surface, surface.current_rotation,
+                                                                surface.current_scale)
+                else:
+                    scaled_surface = pygame.transform.smoothscale(surface.original_surface, (new_width, new_height))
+                    surface.surface = pygame.transform.rotate(scaled_surface, surface.current_rotation)
+        else:
+            surface.surface = surface.original_surface.copy()
+        old_center = surface.rect.center
+        surface.rect = surface.surface.get_rect()
+        surface.rect.center = old_center
+        surface.x = surface.rect.x
+        surface.y = surface.rect.y
 
 
 def get_screen_offset(widget):
@@ -367,8 +387,8 @@ def react(surface, event=None):
                 surface.trigger_event("<PRESS>")
                 if is_inside:
                     surface.pressed = True
-                    surface.drag_offset = (mouse_pos[0] - (surface.x + total_offset_x),
-                                           mouse_pos[1] - (surface.y + total_offset_y))
+                    surface.drag_offset = (mouse_pos[0] - (surface.rect.x + total_offset_x),
+                                           mouse_pos[1] - (surface.rect.y + total_offset_y))
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and surface.pressed:
                 surface.trigger_event("<RELEASE>")
