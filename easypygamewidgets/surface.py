@@ -5,6 +5,7 @@
 import time
 
 import pygame
+from typing_extensions import Any
 
 from easypygamewidgets import misc
 
@@ -21,10 +22,10 @@ pygame.init()
 class Surface:
     def __init__(self, surface: pygame.Surface, screen: "easypygamewidgets.Screen | None" = None,
                  state: str | None = None,
-                 active_hover_cursor: pygame.Cursor = None,
-                 disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None, dragable: bool = False, layer=1000,
-                 tooltip: "easypygamewidgets.Tooltip | None" = None, data=None):
+                 active_hover_cursor: pygame.Cursor | None = None,
+                 disabled_hover_cursor: pygame.Cursor | None = None,
+                 active_pressed_cursor: pygame.Cursor | None = None, dragable: bool = False, layer=1000,
+                 tooltip: "easypygamewidgets.Tooltip | None" = None, data: Any = None):
         self.surface = surface
         if screen:
             screen.add_widget(self)

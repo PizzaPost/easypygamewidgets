@@ -5,6 +5,7 @@
 import math
 
 import pygame
+from typing_extensions import Any
 
 from easypygamewidgets import font, misc
 
@@ -17,18 +18,19 @@ pygame.init()
 # cache system ❌
 # config suggestions ❌
 # optimized set_screen function ❌
+# rgba color ❌
 
 class Slider:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 16,
                  text: str = "easypygamewidgets Slider", start: int | float = 0,
-                 end: int | float = 100, initial_value: int = None, state: str | None = None,
+                 end: int | float = 100, initial_value: int | None = None, state: str | None = None,
                  top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25,
                  bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25,
-                 dot_radius: int = None,
-                 max_extra_dot_radius: int = None,
+                 dot_radius: int | None = None,
+                 max_extra_dot_radius: int | None = None,
                  move_text_with_dot_radius: bool = False,
                  active_unpressed_text_color: tuple = (255, 255, 255),
                  disabled_unpressed_text_color: tuple = (150, 150, 150),
@@ -61,9 +63,9 @@ class Slider:
                  disabled_hover_display_color: tuple = (150, 150, 150),
                  disabled_unpressed_display_color: tuple = (150, 150, 150),
                  border_width: int = 2,
-                 active_hover_cursor: pygame.Cursor = None,
-                 disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None,
+                 active_hover_cursor: pygame.Cursor | None = None,
+                 disabled_hover_cursor: pygame.Cursor | None = None,
+                 active_pressed_cursor: pygame.Cursor | None = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, show_value_when_pressed: bool = True,
                  show_value_when_hovered: bool = True, show_value_when_unpressed: bool = False,
@@ -71,7 +73,7 @@ class Slider:
                  show_full_rounding_of_whole_numbers: bool = False, trigger_hold_delay: int = 150, layer=1000,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, line_spacing: int = 30,
                  min_width: int | None = None, max_width: int | None = None, min_height: int | None = None,
-                 max_height: int | None = None, data=None):
+                 max_height: int | None = None, data: Any = None):
         if screen:
             screen.add_widget(self)
             self.screen = screen

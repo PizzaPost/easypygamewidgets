@@ -5,6 +5,7 @@
 import time
 
 import pygame
+from typing_extensions import Any
 
 from easypygamewidgets import font, misc
 
@@ -18,6 +19,8 @@ pygame.init()
 # cache system ✅
 # config suggestions ❌
 # optimized set_screen function ❌
+# rgba color ✅
+# four different corner radius ✅
 
 class Label:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
@@ -54,15 +57,16 @@ class Label:
                  disabled_unpressed_strikethrough_color: tuple | None = None,
                  disabled_unpressed_border_color: tuple | None = None,
                  border_thickness: int = 2,
-                 active_hover_cursor: pygame.Cursor = None,
-                 disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None,
+                 active_hover_cursor: pygame.Cursor | None = None,
+                 disabled_hover_cursor: pygame.Cursor | None = None,
+                 active_pressed_cursor: pygame.Cursor | None = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 40, dragable: bool = False, top_left_corner_radius: int = 25,
                  top_right_corner_radius: int = 25, bottom_left_corner_radius: int = 25,
                  bottom_right_corner_radius: int = 25, layer=1000, line_spacing=30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
-                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None, data=None):
+                 max_width: int | None = None, min_height: int | None = None, max_height: int | None = None,
+                 data: Any = None):
         font.set_linesize(line_spacing)
         lines = str(text).split("\n")
         max_w = max((font.render(line, True, (255, 255, 255)).get_width() for line in lines), default=0)

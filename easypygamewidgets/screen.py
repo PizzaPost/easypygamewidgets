@@ -3,6 +3,7 @@
 # https://github.com/PizzaPost/easypygamewidgets
 
 import pygame
+from typing_extensions import Any
 
 from easypygamewidgets import misc
 
@@ -17,7 +18,7 @@ class Screen:
     def __init__(self,
                  widgets: "list[easypygamewidgets.Button | easypygamewidgets.Entry | easypygamewidget.Label | easypygamewidgets.Slider | easypygamewidgets.Surface | easypygamewidgets.Timekeeper]" = None,
                  darken_background_with_alpha: int = 0, visible: bool = False, enabled: bool = True, x: int = 0,
-                 y: int = 0, layer=1000, data=None):
+                 y: int = 0, layer=1000, data: Any = None):
         self.widgets = widgets if widgets is not None else []
         self.darken_background_with_alpha = max(min(darken_background_with_alpha, 255), 0)
         self.visible = visible

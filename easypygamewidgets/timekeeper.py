@@ -6,6 +6,7 @@ import math
 import time
 
 import pygame
+from typing_extensions import Any
 
 import easypygamewidgets
 from easypygamewidgets import font, misc
@@ -20,6 +21,8 @@ pygame.init()
 # cache system ❌
 # config suggestions ❌
 # optimized set_screen function ❌
+# rgba color ❌
+# four different corner radii ❌
 
 class Timekeeper:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
@@ -44,15 +47,15 @@ class Timekeeper:
                  disabled_hover_border_color: tuple = (60, 60, 60),
                  active_pressed_border_color: tuple = (50, 50, 50),
                  border_thickness: int = 2,
-                 active_hover_cursor: pygame.Cursor = None,
-                 disabled_hover_cursor: pygame.Cursor = None,
-                 active_pressed_cursor: pygame.Cursor = None,
+                 active_hover_cursor: pygame.Cursor | None = None,
+                 disabled_hover_cursor: pygame.Cursor | None = None,
+                 active_pressed_cursor: pygame.Cursor | None = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 14, ticking: bool = False,
                  type_order: list[str] = ("h", ":", "m", ":", "s", ".", "ms"), reversed: bool = False, layer=1000,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
                  max_width: int | None = None, min_height: int | None = None, max_height: int | None = None,
-                 data=None):
+                 data: Any = None):
         if screen:
             screen.add_widget(self)
             self.screen = screen

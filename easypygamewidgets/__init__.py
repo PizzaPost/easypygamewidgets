@@ -37,6 +37,7 @@ def flip():
             elif isinstance(widget, Slider):
                 slider.draw(widget, misc.pg)
             elif isinstance(widget, Entry):
+                entry.update_animation(widget)
                 entry.draw(widget, misc.pg)
             elif isinstance(widget, Label):
                 label.update_animation(widget)

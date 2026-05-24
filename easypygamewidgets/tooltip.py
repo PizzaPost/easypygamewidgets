@@ -6,6 +6,7 @@ import os
 import pathlib
 
 import pygame
+from typing_extensions import Any
 
 from easypygamewidgets import font, misc
 
@@ -18,6 +19,8 @@ pygame.init()
 # free spacing ❌
 # cache system ❌
 # config suggestions ❌
+# rgba color ❌
+# four different corner radii ❌
 
 class Tooltip:
     def __init__(self,
@@ -29,13 +32,13 @@ class Tooltip:
                  active_unpressed_background_color: tuple | None = None,
                  active_unpressed_border_color: tuple | None = None,
                  border_thickness: int = 2,
-                 active_hover_cursor: pygame.Cursor = None,
+                 active_hover_cursor: pygame.Cursor | None = None,
                  font: pygame.font.Font = font.tooltip_font, alignment: str = "center",
                  alignment_spacing: int = 20, corner_radius: int = 25, layer=1000, style: str | None = None,
                  suppress_icon=False, icon: "pygame.Surface | easypygamewidgets.Surface | None" = None,
                  line_spacing: int = 30, min_width: int | None = None, max_width: int | None = None,
                  min_height: int | None = None, max_height: int | None = None,
-                 data=None):
+                 data: Any = None):
         self.bindings = {}
         self.style = style
         self.icon = None

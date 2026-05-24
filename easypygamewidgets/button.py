@@ -2,6 +2,7 @@
 # by PizzaPost
 # https://github.com/PizzaPost/easypygamewidgets
 
+from typing import Callable
 
 import pygame
 from typing_extensions import Unpack, Any
@@ -12,32 +13,37 @@ from .assets import TypeHints
 pygame.init()
 
 
+# PERFECTION
+# four different corner radii ❌
+
 class Button:
     def __init__(self, screen: "easypygamewidgets.Screen | None" = None, auto_size: bool = True, width: int = 180,
                  height: int = 80,
                  text: str = "easypygamewidgets Button",
                  state: str | None = None,
-                 active_unpressed_text_color: tuple = (255, 255, 255, 255),
-                 disabled_unpressed_text_color: tuple = (150, 150, 150, 255),
-                 active_hover_text_color: tuple = (255, 255, 255, 255),
-                 disabled_hover_text_color: tuple = (150, 150, 150, 255),
-                 active_pressed_text_color: tuple = (200, 200, 200, 255),
-                 active_unpressed_background_color: tuple = (50, 50, 50, 255),
-                 disabled_unpressed_background_color: tuple = (30, 30, 30, 255),
-                 active_hover_background_color: tuple = (70, 70, 70, 255),
-                 disabled_hover_background_color: tuple = (30, 30, 30, 255),
-                 active_pressed_background_color: tuple = (40, 40, 40, 255),
-                 active_unpressed_border_color: tuple = (100, 100, 100, 255),
-                 disabled_unpressed_border_color: tuple = (60, 60, 60, 255),
-                 active_hover_border_color: tuple = (150, 150, 150, 255),
-                 disabled_hover_border_color: tuple = (60, 60, 60, 255),
-                 active_pressed_border_color: tuple = (50, 50, 50, 255),
+                 active_unpressed_text_color: tuple | None = (255, 255, 255, 255),
+                 disabled_unpressed_text_color: tuple | None = (150, 150, 150, 255),
+                 active_hover_text_color: tuple | None = (255, 255, 255, 255),
+                 disabled_hover_text_color: tuple | None = (150, 150, 150, 255),
+                 active_pressed_text_color: tuple | None = (200, 200, 200, 255),
+                 active_unpressed_background_color: tuple | None = (50, 50, 50, 255),
+                 disabled_unpressed_background_color: tuple | None = (30, 30, 30, 255),
+                 active_hover_background_color: tuple | None = (70, 70, 70, 255),
+                 disabled_hover_background_color: tuple | None = (30, 30, 30, 255),
+                 active_pressed_background_color: tuple | None = (40, 40, 40, 255),
+                 active_unpressed_border_color: tuple | None = (100, 100, 100, 255),
+                 disabled_unpressed_border_color: tuple | None = (60, 60, 60, 255),
+                 active_hover_border_color: tuple | None = (150, 150, 150, 255),
+                 disabled_hover_border_color: tuple | None = (60, 60, 60, 255),
+                 active_pressed_border_color: tuple | None = (50, 50, 50, 255),
                  border_thickness: int = 2,
                  active_hover_cursor: pygame.Cursor | None = None,
                  disabled_hover_cursor: pygame.Cursor | None = None,
                  active_pressed_cursor: pygame.Cursor | None = None,
                  font: pygame.font.Font = font.default_font, alignment: str = "center",
-                 command=None, alignment_spacing: int = 40, corner_radius: int = 20, layer=1000, line_spacing: int = 30,
+                 command: Callable[[], None] | None = None, alignment_spacing: int = 40, corner_radius: int = 20,
+                 layer=1000,
+                 line_spacing: int = 30,
                  tooltip: "easypygamewidgets.Tooltip | None" = None, min_width: int | None = None,
                  max_width: int | None = None, min_height: int | None = None, max_height: int | None = None,
                  data: Any = None):
@@ -703,9 +709,6 @@ class Button:
             self._font.set_linesize(self._line_spacing)
         return self
 
-    def _config(self, **kwargs: Unpack[TypeHints.ButtonConfig]):
-        self._configure(**kwargs)
-
     def _delete(self):
         self._alive = False
         if self in misc.all_widgets:
@@ -774,10 +777,7 @@ class Button:
     def _scale(self, value=None, frames_to_finish=1):
         if frames_to_finish <= 0:
             frames_to_finish = 1
-        if value is None:
-            self._target_scale = 1
-        else:
-            self._target_scale = value
+        self._target_scale = 1 if value is None else value
         self._scale_step = (self._target_scale - self._current_scale) / frames_to_finish
         update_animation(self)
         return self
@@ -785,10 +785,7 @@ class Button:
     def _rotate(self, value=None, frames_to_finish=1):
         if frames_to_finish <= 0:
             frames_to_finish = 1
-        if value is None:
-            self._target_rotation = 0
-        else:
-            self._target_rotation = value
+        self._target_rotation = 0 if value is None else value
         self._rotation_step = (self._target_rotation - self._current_rotation) / frames_to_finish
         update_animation(self)
         return self
@@ -807,10 +804,7 @@ class Button:
     def _offset(self, value: tuple[int, int], frames_to_finish=1):
         if frames_to_finish <= 0:
             frames_to_finish = 1
-        if value is None:
-            self._target_offset = (0, 0)
-        else:
-            self._target_offset = value
+        self._target_offset = (0, 0) if value is None else value
         self._offset_step[0] = (self._target_offset[0] - self._current_offset[0]) / frames_to_finish
         self._offset_step[1] = (self._target_offset[1] - self._current_offset[1]) / frames_to_finish
         update_animation(self)
@@ -828,7 +822,7 @@ class Button:
 
     @property
     def config(self):
-        return self._config
+        return self._configure
 
     @property
     def delete(self):
@@ -950,8 +944,10 @@ def render_button_surface(button, is_hovering):
             bg_color = button.disabled_unpressed_background_color
             brd_color = button.disabled_unpressed_border_color
 
-    cached = pygame.Surface((button.width, button.height), pygame.SRCALPHA)
-    local_rect = pygame.Rect(0, 0, button.width, button.height)
+    base_width = button._width
+    base_height = button._height
+    cached = pygame.Surface((base_width, base_height), pygame.SRCALPHA)
+    local_rect = pygame.Rect(0, 0, base_width, base_height)
     pygame.draw.rect(cached, bg_color, local_rect, border_radius=button.corner_radius)
     if brd_color:
         pygame.draw.rect(cached, brd_color, local_rect, width=button.border_thickness,
@@ -988,6 +984,7 @@ def render_button_surface(button, is_hovering):
             else:
                 text_rect.center = (local_rect.centerx, line_centery)
             cached.blit(text_surf, text_rect)
+    button.original_surface = cached
     button.cached_surface = cached
 
 
@@ -1017,7 +1014,7 @@ def draw(button, surface: pygame.Surface):
             else:
                 button.cached_surface = pygame.Surface((0, 0), pygame.SRCALPHA)
         else:
-            button.surface = button.original_surface.copy()
+            button.cached_surface = button.original_surface.copy()
         old_center = button.rect.center
         button.rect = button.cached_surface.get_rect()
         button.rect.center = old_center
